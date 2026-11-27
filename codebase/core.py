@@ -121,6 +121,15 @@ def reopen(session):
     return session
 
 
+def edit_profile(session, members):
+    """Thay danh sách thành viên khi hồ sơ đang mở; giữ nguyên câu hỏi chưa xử lý."""
+    if session["status"] != "PROFILE_DRAFT" or session["locked"]:
+        raise ValueError("Hồ sơ chưa mở để sửa")
+    session["profile"]["members"] = copy.deepcopy(members)
+    _msg(session, "INFO", "Đã cập nhật hồ sơ. Vui lòng kiểm tra các câu hỏi còn mở.")
+    return session
+
+
 def set_budget(session, amount):
     """Cập nhật quỹ rồi lập lại giỏ từ các ràng buộc đã khoá."""
     if session["status"] in ("CART_VALID", "CART_INFEASIBLE") and type(amount) is int and amount > 0:

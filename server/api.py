@@ -45,11 +45,12 @@ def state(s):
         source = {'kind': 'CHAT', 'line': None, 'quote': None}
         constraints = []
         if m.get('vegetarian'):
-            constraints.append({'id': f'{mid}-vegetarian', 'type': 'VEGETARIAN', 'allergen': None, 'note': None, 'source': source.copy(), 'locked': s['locked']})
+            veg_source = {'kind': 'HOST', 'line': None, 'quote': None} if 'vegetarian' in m.get('host_constraints', []) else source.copy()
+            constraints.append({'id': f'{mid}-vegetarian', 'type': 'VEGETARIAN', 'allergen': None, 'note': None, 'source': veg_source, 'locked': s['locked']})
         for tag in m.get('allergens', {}):
-            constraints.append({'id': f'{mid}-{tag}', 'type': 'ALLERGY', 'allergen': tag.upper(), 'note': None, 'source': source.copy(), 'locked': s['locked']})
-        members.append({'id': mid, 'name': m['name'], 'origin': 'CHAT', 'hard_constraints': constraints,
-                        'preferences': [{'id': f'{mid}-p{i}', 'text': p, 'source': source.copy()} for i, p in enumerate(m.get('preferences', []), 1)], 'flags': [], 'quotes': m.get('quotes', [])})
+            constraints.append({'id': f'{mid}-{tag}', 'type': 'ALLERGY', 'allergen': tag.upper(), 'note': None, 'source': {'kind': 'HOST', 'line': None, 'quote': None} if tag in m.get('host_constraints', []) else source.copy(), 'locked': s['locked']})
+        members.append({'id': mid, 'name': m['name'], 'origin': m.get('origin', 'CHAT'), 'hard_constraints': constraints,
+                        'preferences': [{'id': f'{mid}-p{i}', 'text': p, 'source': {'kind': 'HOST', 'line': None, 'quote': None} if p in m.get('host_preferences', []) else source.copy()} for i, p in enumerate(m.get('preferences', []), 1)], 'flags': [], 'quotes': m.get('quotes', [])})
     questions = [{'id': q['id'], 'member_id': ids.get(q.get('member')), 'text': q['text'], 'options': [], 'status': q['status']} for q in profile.get('questions', [])]
     cart = None
     if s['cart'] is not None:
@@ -85,6 +86,54 @@ def text_field(body, name):
     return value
 
 
+def parse_members(body, session):
+    incoming = body.get('members')
+    if not isinstance(incoming, list):
+        fail(400, 'INVALID_INPUT', 'Danh sách thành viên không hợp lệ.')
+    old = session['profile']['members']
+    known = tools._lookups()[2]
+    parsed, names = [], set()
+    for member in incoming:
+        if not isinstance(member, dict) or not isinstance(member.get('name'), str) or not member['name'].strip():
+            fail(400, 'INVALID_INPUT', 'Mỗi thành viên cần có tên.')
+        name = member['name'].strip()
+        if name.casefold() in names:
+            fail(400, 'INVALID_INPUT', 'Tên thành viên không được trùng nhau.')
+        names.add(name.casefold())
+        constraints, preferences = member.get('hard_constraints'), member.get('preferences')
+        if not isinstance(constraints, list) or not isinstance(preferences, list):
+            fail(400, 'INVALID_INPUT', 'Ràng buộc và sở thích phải là danh sách.')
+        vegetarian, allergens, prefs = False, {}, []
+        for constraint in constraints:
+            if not isinstance(constraint, dict):
+                fail(400, 'INVALID_INPUT', 'Ràng buộc không hợp lệ.')
+            if constraint.get('type') == 'VEGETARIAN':
+                vegetarian = True
+            elif constraint.get('type') == 'ALLERGY':
+                tag = constraint.get('allergen')
+                if not isinstance(tag, str) or tag.lower() not in known:
+                    fail(400, 'INVALID_INPUT', 'Mã dị ứng chưa được hỗ trợ trong dữ liệu menu.')
+                allergens[tag.lower()] = known[tag.lower()]
+            else:
+                fail(400, 'INVALID_INPUT', 'Loại ràng buộc không hợp lệ.')
+        for pref in preferences:
+            if not isinstance(pref, dict) or not isinstance(pref.get('text'), str) or not pref['text'].strip():
+                fail(400, 'INVALID_INPUT', 'Sở thích không hợp lệ.')
+            prefs.append(pref['text'].strip())
+        previous = next((m for m in old if m['name'].casefold() == name.casefold()), {})
+        host_constraints = set(previous.get('host_constraints', []))
+        if vegetarian and not previous.get('vegetarian'):
+            host_constraints.add('vegetarian')
+        host_constraints.update(tag for tag in allergens if tag not in previous.get('allergens', {}))
+        host_preferences = set(previous.get('host_preferences', []))
+        host_preferences.update(pref for pref in prefs if pref not in previous.get('preferences', []))
+        parsed.append({'name': name, 'vegetarian': vegetarian, 'allergens': allergens,
+                       'preferences': prefs, 'quotes': previous.get('quotes', []),
+                       'origin': previous.get('origin', 'CHAT') if previous else 'HOST_ADDED',
+                       'host_constraints': sorted(host_constraints), 'host_preferences': sorted(host_preferences)})
+    return parsed
+
+
 def dispatch(method, path, body):
     parts = path.strip('/').split('/')
     if parts[:1] != ['api']:
@@ -116,6 +165,13 @@ def dispatch(method, path, body):
             if session is None:
                 fail(404, 'NOT_FOUND', 'Không tìm thấy phiên.')
             if method == 'GET' and len(parts) == 2:
+                return state(session)
+            if method == 'PATCH' and len(parts) == 3 and parts[2] == 'members':
+                if session['status'] != 'PROFILE_DRAFT' or session['locked']:
+                    fail(409, 'INVALID_STATE', 'Hãy mở lại hồ sơ trước khi sửa.')
+                core.edit_profile(session, parse_members(body, session))
+                stamp_messages(session)
+                store.save(session)
                 return state(session)
             if method == 'POST' and len(parts) == 3:
                 action = parts[2]

@@ -72,6 +72,27 @@ class TestAPI(unittest.TestCase):
         self.assertFalse(reopened['members'][0]['hard_constraints'][0]['locked'])
         self.assertEqual(self.request('GET', path)[1], reopened)
 
+    def test_edit_profile_requires_reopen_and_rejects_unknown_allergen(self):
+        profile = {'budget': 300000, 'members': [{'name': 'An', 'vegetarian': False, 'allergens': {'peanut': 'đậu phộng'}, 'preferences': [], 'quotes': []}], 'questions': []}
+        with mock.patch.object(api.core.llm_steps, 'extract_profile', return_value=profile):
+            _, draft = self.request('POST', '/sessions', {'chat_text': 'An: dị ứng đậu phộng 300k'})
+        path = '/sessions/' + draft['session_id']
+        member = draft['members'][0]
+        member['hard_constraints'] = [{'type': 'ALLERGY', 'allergen': 'OTHER'}]
+        self.assertEqual(self.request('PATCH', path + '/members', {'members': [member]})[0], 400)
+        self.assertEqual(self.request('GET', path)[1]['members'][0]['hard_constraints'][0]['allergen'], 'PEANUT')
+        member['hard_constraints'] = [{'type': 'VEGETARIAN'}]
+        _, changed = self.request('PATCH', path + '/members', {'members': [member]})
+        self.assertEqual(changed['members'][0]['hard_constraints'][0]['type'], 'VEGETARIAN')
+        with mock.patch.object(api.core.llm_steps, 'choose_restaurant', return_value={'store_id': 'store_08'}), mock.patch.object(api.core.llm_steps, 'pick_items', return_value={'picks': [{'member': 'An', 'item_id': 'dish_077', 'reason': 'test'}]}):
+            _, confirmed = self.request('POST', path + '/confirm')
+        self.assertEqual(self.request('PATCH', path + '/members', {'members': []})[0], 409)
+        self.assertTrue(self.request('GET', path)[1]['members'][0]['hard_constraints'][0]['locked'])
+        self.request('POST', path + '/reopen')
+        member['hard_constraints'] = []
+        _, changed = self.request('PATCH', path + '/members', {'members': [member]})
+        self.assertEqual(changed['members'][0]['hard_constraints'], [])
+
     def test_actions_recalculate_and_keep_constraints(self):
         profile = {'budget': 10000, 'members': [{'name': 'An', 'vegetarian': True, 'allergens': {}, 'preferences': [], 'quotes': []}], 'questions': []}
         with mock.patch.object(api.core.llm_steps, 'extract_profile', return_value=profile):
