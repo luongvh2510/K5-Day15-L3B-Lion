@@ -14,6 +14,8 @@ Cần Python 3.10 trở lên; không cần cài thư viện ngoài. Chạy `pyth
 
 API gồm `POST /sessions` (`{"chat_text":"..."}`), `GET /sessions/{id}`, `POST /sessions/{id}/messages` (`{"text":"..."}`), `POST /sessions/{id}/confirm`, `POST /sessions/{id}/finalize`, `GET /restaurants`, `GET /restaurants/{id}/menu` và `POST /debug/validate-cart`. Dữ liệu phiên lưu trong `sessions.sqlite3`, đã được bỏ qua bởi Git; có thể đặt đường dẫn khác bằng biến `LION_DB_PATH`. Server mặc định chỉ lắng nghe trên máy hiện tại; khóa phiên chỉ phối hợp các luồng trong một tiến trình server.
 
+Hợp đồng API đầy đủ: [docs/ba/04-hop-dong-du-lieu-API.md](docs/ba/04-hop-dong-du-lieu-API.md). Hướng dẫn nối frontend: [docs/frontend-tu.md](docs/frontend-tu.md). Mock JSON sinh từ API thật: [docs/ba/mocks/](docs/ba/mocks/).
+
 Cấu hình model thật trong `.env`: `MODEL_PROVIDER=openrouter` (nhóm đang dùng), `openai`, `anthropic` hoặc `ollama`, cùng `MODEL_NAME` và `API_KEY` (Ollama không cần khóa). Xem [hướng dẫn nối model](docs/connect-model.md); không đưa khóa vào Git. Chế độ `fake` không tạo được hồ sơ AI hợp lệ. API hỗ trợ mở lại hồ sơ, sửa thành viên và các hành động đổi quỹ hoặc đổi quán. Các nhãn dị ứng CRUSTACEAN/MOLLUSC và nguồn trích chi tiết cũng cần nhóm thống nhất thêm với BA và AI trước khi frontend phụ thuộc vào chúng.
 
 Kiểm thử: `python3 -m unittest discover -s tests -v`.
