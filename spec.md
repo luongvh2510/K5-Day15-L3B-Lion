@@ -192,9 +192,9 @@ flowchart TB
 (1) nguồn sự thật · (2) mơ hồ / thiếu thông tin · (3) ngoài phạm vi / thẩm quyền · (4) đặc thù lĩnh vực (sai thì người dùng mất gì đắt nhất)
 
 ## §6. Bốn đường đi của trải nghiệm
-- **Mọi thứ suôn sẻ.** Người đặt dán chat, chọn quán và nhập ngân sách. Hệ thống hiện hồ sơ cùng trích dẫn từ chat. Sau khi người đặt xác nhận, hệ thống trình giỏ theo từng người, đơn giá, phí ship, tổng và số dư để người đặt duyệt (B01–B03).
+- **Mọi thứ suôn sẻ.** Người đặt chỉ dán đoạn chat nhóm; quỹ chung lấy từ chat. Hệ thống hiện hồ sơ cùng trích dẫn từ chat. Sau khi người đặt xác nhận, hệ thống tự chọn quán phù hợp và trình giỏ theo từng người, đơn giá, phí ship, tổng và số dư để người đặt duyệt (B01–B03).
 - **Không chắc (lớp 2).** Hiện câu hỏi gắn với đúng thành viên và lời dặn còn mơ hồ hoặc mâu thuẫn. Người đặt trả lời rồi xác nhận hồ sơ (B07–B08).
-- **Không có căn cứ (lớp 1).** Nếu thiếu dữ liệu thành phần, loại món khỏi lựa chọn cho thành viên có ràng buộc cứng. Nếu dữ liệu menu cho thấy không còn món phù hợp, chỉ rõ nguyên nhân và cho phép chọn quán khác (B06 là ca không còn món phù hợp).
+- **Không có căn cứ (lớp 1).** Nếu thiếu dữ liệu thành phần, loại món khỏi lựa chọn cho thành viên có ràng buộc cứng. Nếu dữ liệu menu cho thấy không còn món phù hợp, chỉ rõ nguyên nhân và đề xuất đổi sang quán khác (B06 là ca không còn món phù hợp).
 - **Người dùng sửa.** Trước xác nhận, cho sửa hồ sơ nháp. Khi cần sửa ràng buộc đã khóa do gán nhầm, người đặt dùng **Sửa hồ sơ**, xem cảnh báo, hủy giỏ cũ và xác nhận lại hồ sơ trước khi lập giỏ mới (BR-11, BR-12).
 - **Bị đòi ngoài phạm vi (lớp 3).** Từ chối lệnh gỡ ràng buộc hoặc sửa nhãn qua chat. Giữ hồ sơ đã xác nhận và đưa ra thao tác hợp lệ tiếp theo (B09–B10).
 - **Trường hợp đặc thù lĩnh vực (lớp 4).** Kiểm dị ứng, ăn chay, món có trong menu và tổng sau phí ship trước khi hiển thị giỏ hợp lệ. Khi quỹ không đủ, hiện số tiền thiếu theo giỏ tối thiểu (B04–B06).
