@@ -43,9 +43,61 @@ Data BTC cấp đã dùng (nếu có — không commit nguyên file): không dù
 
 > Phần "đề xuất" dưới đây lấy từ `docs/ba/04` và `docs/ba/05`. **Lương chốt hình dạng, mức tự động và nguyên tắc** trong buổi chốt sơ đồ 18:00–18:30; Dũng xác nhận bảng công cụ.
 
-- **Lát cắt MỘT CÂU** (1 người dùng · 1 việc · 1 quyết định AI · 1 kết quả): một người đặt hộ cho nhóm 5 người dán đoạn chat và quỹ chung, hệ thống đọc ràng buộc từng người, lập giỏ từ menu một quán mẫu, và chỉ giao lại giỏ đã qua kiểm tra dị ứng, ăn chay, món thiếu thành phần và tổng tiền gồm phí ship (hoặc đề xuất nới cụ thể khi không có giỏ hợp lệ).
+- **Lát cắt MỘT CÂU** (1 người dùng · 1 việc · 1 quyết định AI · 1 kết quả): một người đặt hộ cho nhóm 5 người dán đoạn chat nhóm (quỹ chung nằm trong chat), hệ thống đọc ràng buộc từng người, tự chọn một quán mẫu phù hợp và lập giỏ từ menu quán đó, và chỉ giao lại giỏ đã qua kiểm tra dị ứng, ăn chay, món thiếu thành phần và tổng tiền gồm phí ship (hoặc đề xuất nới cụ thể khi không có giỏ hợp lệ).
 - Không làm (≥3 điều): đăng nhập, thanh toán, gọi API GrabFood/ShopeeFood, nhiều quán trong một đơn, mã giảm giá, chia tiền từng người, đọc ảnh chụp màn hình chat, xử lý nhiễm chéo trong bếp (chỉ nhắc người đặt báo quán). *(theo PRD mục 4)*
-- **Sơ đồ** (ảnh / Mermaid / draw.io): [chèn ở đây] *(chờ Lương/Tú — có bản activity diagram nháp từ buổi trao đổi, chưa lưu vào repo)*
+- **Sơ đồ kiến trúc** (activity diagram, Mermaid render trên GitHub; tím = AI quyết định, xanh = code kiểm cứng, xám = người dùng / điểm quyết định):
+
+```mermaid
+flowchart TB
+    START((" ")) --> PASTE["Người dùng dán chat nhóm"]
+
+    subgraph PH1["Phase 1 · Làm rõ yêu cầu"]
+        EX["AI trích hồ sơ nhóm và quỹ<br/>ràng buộc, sở thích, câu gốc"]
+        D1{"Còn mâu thuẫn, mơ hồ<br/>hoặc thiếu quỹ?"}
+        ASK["AI hỏi lại, người dùng trả lời,<br/>AI cập nhật hồ sơ"]
+        D2{"Người dùng<br/>xác nhận hồ sơ?"}
+        EX --> D1
+        D1 -->|"có"| ASK --> D1
+        D1 -->|"không"| D2
+        D2 -->|"chưa đúng, sửa"| ASK
+    end
+
+    LOCK["Code khoá ràng buộc cứng<br/>dị ứng, ăn chay"]
+
+    subgraph PH2["Phase 2 · Chọn món"]
+        QUAN["AI chọn quán phù hợp"]
+        SAFE["Code lọc món an toàn<br/>cho từng người"]
+        D3{"Có giỏ<br/>khả thi?"}
+        NOI["AI đề xuất nới<br/>tăng quỹ / đổi quán"]
+        PICK["AI chọn món"]
+        VC["Code kiểm giỏ"]
+        D4{"Giỏ hợp lệ?"}
+        D5{"Người dùng<br/>đồng ý giỏ?"}
+        ADJ["Người dùng nhắn điều chỉnh<br/>AI hiểu yêu cầu"]
+        SAFE --> D3
+        QUAN --> SAFE
+        D3 -->|"không"| NOI -->|"người dùng chọn"| QUAN
+        D3 -->|"có"| PICK --> VC --> D4
+        D4 -->|"không, sửa lại"| PICK
+        D4 -->|"có"| D5
+        D5 -->|"chưa"| ADJ --> PICK
+    end
+
+    DONE["Chốt giỏ,<br/>tin nhắn gửi nhóm"] --> END((("  ")))
+
+    PASTE --> EX
+    D2 -->|"đúng"| LOCK --> QUAN
+    D5 -->|"đồng ý"| DONE
+
+    classDef ai fill:#EEEDFE,stroke:#534AB7,color:#26215C
+    classDef code fill:#E1F5EE,stroke:#0F6E56,color:#04342C
+    classDef user fill:#F1EFE8,stroke:#5F5E5A,color:#2C2C2A
+    classDef dot fill:#2C2C2A,stroke:#2C2C2A
+    class EX,ASK,QUAN,NOI,PICK,ADJ ai
+    class LOCK,SAFE,VC code
+    class PASTE,DONE,D1,D2,D3,D4,D5 user
+    class START,END dot
+```
 - **Hình dạng:** [ ] workflow cố định · [x] một agent · [ ] nhiều agent — **một agent hội thoại chia 2 phase, có cổng chuyển phase.**
   - Phase 1 (làm rõ yêu cầu): agent đọc chat, trích hồ sơ nhóm, tự quyết hỏi lại hay không khi có mâu thuẫn hoặc mơ hồ, cập nhật theo câu trả lời. Người dùng xác nhận hồ sơ thì mới sang phase 2.
   - Phase 2 (chọn món và điều chỉnh): code lọc món an toàn, agent chọn món, code kiểm giỏ, rồi agent thương lượng với người dùng (đổi món, nới quỹ, đổi quán).
@@ -55,11 +107,61 @@ Data BTC cấp đã dùng (nếu có — không commit nguyên file): không dù
 
   | Công cụ | Input | Output | Tác động ra ngoài? |
   |---|---|---|---|
-  | `load_menu` | mã quán | thông tin quán + danh sách món (giá, nhãn chay, chất gây dị ứng, rõ thành phần) | Không |
+  | `list_restaurants` | không có | danh sách quán mẫu (tên, phí ship, tóm tắt menu: số món chay, chất gây dị ứng hay gặp) | Không |
+  | `load_menu` | mã quán do agent chọn | thông tin quán + danh sách món (giá, nhãn chay, chất gây dị ứng, rõ thành phần) | Không |
   | `safe_mains` | một thành viên, menu | món chính an toàn cho người đó + món bị loại kèm lý do | Không |
   | `feasibility` | thành viên, menu, quỹ, phí ship | không có gì nếu khả thi, hoặc lý do bất khả thi + số tiền thiếu | Không |
   | `validate_cart` | các dòng giỏ, thành viên, menu, quỹ, phí ship | danh sách vi phạm (rỗng = hợp lệ) | Không |
   | `fallback_cart` | thành viên, menu, quỹ, phí ship | giỏ dự phòng (mỗi người món chính an toàn rẻ nhất) | Không |
+  | `apply_profile_changes` | danh sách thay đổi do AI đề xuất, hồ sơ hiện tại | hồ sơ mới; bỏ mọi thao tác xoá ràng buộc đã khoá và ghi log | Không |
+  | `lock_constraints` | hồ sơ đã xác nhận | hồ sơ có mọi ràng buộc cứng `locked=true` | Không |
+
+- **Thiết kế chi tiết** (bám `docs/ba/01` quy tắc BR-xx, `docs/ba/04` kiểu dữ liệu, `docs/ba/05` luồng):
+
+  **Trạng thái phiên.** Phase 1 = `PROFILE_DRAFT`. Xác nhận hồ sơ chỉ bật khi không còn câu hỏi mở (BR-10). Sau xác nhận, code tính khả thi và chuyển sang Phase 2: `CART_VALID` hoặc `CART_INFEASIBLE`. Người dùng đồng ý giỏ → `FINALIZED`. Nút "Sửa hồ sơ" quay về Phase 1: huỷ giỏ, mở khoá, phải xác nhận lại (BR-12).
+
+  **Phase 1 · Làm rõ yêu cầu** (không dùng menu)
+
+  | # | Bước | Ai làm | Kết quả |
+  |---|---|---|---|
+  | 1 | Người dùng chỉ dán đoạn chat nhóm. Quỹ chung lấy từ chat; chat không nói quỹ thì agent hỏi lại. Người dùng không chọn quán | Người dùng | Đầu vào của phiên |
+  | 2 | `extract_profile`: rút thành viên, ràng buộc cứng (chay, dị ứng theo chất), sở thích, câu gốc, chỗ mâu thuẫn/mơ hồ | LLM | Hồ sơ nháp + danh sách câu hỏi |
+  | 3 | Còn câu hỏi mở → agent hỏi lại; người dùng trả lời → `apply_answer` đề xuất thay đổi → `apply_profile_changes` áp vào | LLM + code | Hồ sơ cập nhật; lặp đến khi hết câu hỏi |
+  | 4 | Người dùng rà hồ sơ (sửa được tự do), bấm xác nhận → `lock_constraints` | Người dùng + code | Ràng buộc cứng bị khoá một chiều, sang Phase 2 |
+
+  **Phase 2 · Chọn món và điều chỉnh**
+
+  | # | Bước | Ai làm | Kết quả |
+  |---|---|---|---|
+  | 1 | Agent chọn quán phù hợp với hồ sơ và quỹ (`choose_restaurant` trên `list_restaurants`), rồi `load_menu`, `feasibility` | LLM + code | Quán đã chọn kèm lý do; khả thi hoặc lý do bất khả thi + số tiền thiếu chính xác (BR-14) |
+  | 2 | Bất khả thi → `write_message` diễn đạt số do code đưa, kèm lựa chọn: tăng quỹ đúng bằng chi phí tối thiểu, hoặc agent đề xuất đổi sang quán khác (BR-15); người dùng chọn đổi quán thì quay lại bước 1. Không bao giờ đề xuất bỏ ràng buộc cứng | LLM | `CART_INFEASIBLE`, không hiện giỏ (BR-16) |
+  | 3 | Khả thi → `safe_mains` cho từng người → `pick_items` chỉ chọn id trong danh sách an toàn của người đó | Code + LLM | Giỏ đề xuất |
+  | 4 | `validate_cart`. Có vi phạm → `pick_items` lại kèm danh sách lỗi (giới hạn số vòng sửa, chờ nhóm chốt) → vẫn lỗi → `fallback_cart` | Code + LLM | `CART_VALID`, chỉ khi 0 vi phạm (BR-17) |
+  | 5 | Mỗi tin nhắn tiếp theo → `route_message` phân loại ý định (bảng dưới) | LLM + code | Giỏ mới, hoặc giữ giỏ cũ kèm giải thích |
+  | 6 | Người dùng đồng ý → `write_message` viết tin nhắn chốt; code chèn dòng ghi chú dị ứng cho quán (BR-19) | LLM + code | `FINALIZED`, tin nhắn để copy gửi nhóm |
+
+  **Ý định ở Phase 2** (`route_message`)
+
+  | Ý định | Xử lý |
+  |---|---|
+  | Đổi món / thêm món | `pick_items` có yêu cầu mới → `validate_cart`; lỗi thì giữ giỏ cũ và giải thích |
+  | Thêm ràng buộc cứng ("à Chi cũng dị ứng trứng") | Thêm và khoá luôn, lập lại giỏ |
+  | Bỏ ràng buộc cứng ("kệ dị ứng đi") | Từ chối (`REFUSAL`), hồ sơ không đổi |
+  | Đổi quỹ | Cập nhật quỹ, tính lại khả thi, lập lại giỏ |
+  | Khác | Trả lời ngắn, không đổi gì |
+
+  **Các bước LLM** (mỗi bước là một lần gọi model trả JSON có cấu trúc; code chuyển sang kiểu dữ liệu ở `docs/ba/04`)
+
+  | Bước | Phase | Input | Output | Khi lỗi |
+  |---|---|---|---|---|
+  | `extract_profile` | 1 | đoạn chat gốc | thành viên, quỹ chung, ràng buộc cứng kèm câu gốc, sở thích, chỗ mâu thuẫn/mơ hồ/thiếu quỹ kèm câu hỏi | JSON sai: thử lại một lần, vẫn sai thì báo lỗi |
+  | `apply_answer` | 1 | câu hỏi, câu trả lời, hồ sơ hiện tại | danh sách thay đổi + câu trả lời ngắn | như trên |
+  | `choose_restaurant` | 2 | hồ sơ nhóm, quỹ, danh sách quán mẫu (và quán đã thử nếu đang đổi) | mã quán + lý do ngắn | id ngoài danh sách: chọn lại một lần, vẫn sai thì lấy quán có nhiều món an toàn nhất do code tính *(đề xuất)* |
+  | `pick_items` | 2 | từng người kèm sở thích và món an toàn có giá, quỹ, phí ship, lỗi lần trước | mỗi người một id món + lý do ngắn | chọn id ngoài danh sách = vi phạm, vào vòng sửa; JSON sai thì `fallback_cart` |
+  | `route_message` | 2 | tin nhắn, hồ sơ, giỏ hiện tại | ý định, người liên quan, chi tiết | không rõ thì coi là "Khác" |
+  | `write_message` | 2 | số liệu do code đưa (thiếu bao nhiêu, giỏ, ghi chú) | câu thông báo / tin nhắn chốt | dùng mẫu câu cố định |
+
+  **Phòng thủ hai lớp cho ràng buộc cứng** (BR-12). Lớp 1: agent nhận ra yêu cầu phá rào và từ chối. Lớp 2 (không phụ thuộc AI): `apply_profile_changes` bỏ mọi thao tác xoá ràng buộc đã khoá; mọi giỏ đi qua `validate_cart` trước khi tới giao diện; giá luôn lấy từ menu, không lấy từ câu trả lời của AI (BR-05). Dù model bị thuyết phục, kết quả cuối vẫn an toàn.
 
 - **Mức tự động:** [x] AI gợi ý, người quyết · [ ] AI tự làm khi chắc, chuyển người khi không · [ ] AI tự làm — lý do: sai dị ứng gây hậu quả sức khoẻ và không sửa được sau khi quán đã nấu, nên người đặt phải xác nhận hồ sơ trước khi lập giỏ và duyệt giỏ trước khi chốt.
 - **Chỗ chặn rủi ro** (rủi ro lớn nhất của lát cắt bị chặn ở đâu, bằng gì): đặt nhầm món vi phạm dị ứng/chay — chặn bằng `validate_cart` (code, không gọi LLM), khoá một chiều ràng buộc cứng (BR-12: ràng buộc chỉ thêm được, không tắt được qua hội thoại), món không rõ thành phần coi là không an toàn (BR-04). *(theo `docs/ba/01`, `docs/ba/05`)*
@@ -72,7 +174,7 @@ Data BTC cấp đã dùng (nếu có — không commit nguyên file): không dù
   | G11 — giải thích vì sao | Hồ sơ nhóm hiện câu chat gốc cho từng ràng buộc; món bị loại hiện kèm lý do |
   | G8/G9 — dễ bỏ qua, dễ sửa | Người dùng sửa hồ sơ ngay trước khi xác nhận (cuối Phase 1) và đổi món ở Phase 2 |
 
-- Phần nào còn giả (công cụ trả dữ liệu giả, model chế độ giả…) — ghi rõ, không giả làm thật: *(cập nhật khi có `codebase/agent.py`; hiện `codebase/` còn là khung mẫu)*
+- Phần nào còn giả (công cụ trả dữ liệu giả, model chế độ giả…) — ghi rõ, không giả làm thật: *(dự kiến tại CP2)* các bước LLM trả JSON giả cố định, chưa gọi model; menu quán là dữ liệu giả lập (`synthetic`, xem `data/DATA_CARD.md`). Cập nhật mục này khi nối model thật (CP3). Hiện `codebase/` vẫn là khung mẫu.
 
 ## §5. Chỗ khó — 4 lớp + ≥6 kịch bản + 2 tấn công *(guide 2.3)*
 
