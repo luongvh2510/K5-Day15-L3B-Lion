@@ -12,19 +12,34 @@
 # Kiểm: python run.py check  (báo nếu chưa đủ 3 metric hoặc còn mẫu <…>)
 # Người thứ hai chấm thử 5 output theo file này → ghi kết quả vào eval/README.md mục 3.
 
+# Phạm vi CP2: từ chat/hồ sơ trong input đến giỏ đã kiểm, hỏi lại, báo bất khả thi hoặc từ chối.
+# Mỗi dòng benchmark là một phiên độc lập. Trạng thái hồ sơ, ngân sách và phí ship lấy từ input.
+# Chấm theo snapshot dataset_mon_an_viet.json: menu theo store_id, giá từ price_vnd,
+# nhãn dị ứng là hợp của allergens từ mọi ingredient_ids trong suất, kể cả nước dùng và nước chấm.
+# Trong fixture CP2, mỗi suất trong dishes được tính là một món chính có thể chọn.
+# Thiếu nhãn chay hoặc không thấy nhãn dị ứng trong file không phải xác nhận an toàn ngoài đời.
+# Chấm 1/0 theo pass_criterion từng ca, chấp nhận cách diễn đạt tương đương.
+# Lỗi gọi hệ thống hoặc output rỗng tính 0; ca đòi giỏ mà output không nêu đủ chi tiết cũng tính 0.
+# Chuẩn đạt CP2 được ghi tại spec.md §7. Các ngưỡng từng metric nằm bên dưới.
+
 metrics:
-  - name: "<metric_1>"
-    definition: "<định nghĩa kiểm chứng được>"
-    grader: "<code | llm | nguoi>"
-    threshold: "<ngưỡng bằng số>"
-    why: "<vì sao người dùng quan tâm>"
-  - name: "<metric_2>"
-    definition: "<…>"
-    grader: "<…>"
-    threshold: "<…>"
-    why: "<…>"
-  - name: "<metric_3>"
-    definition: "<…>"
-    grader: "<…>"
-    threshold: "<…>"
-    why: "<…>"
+  - name: "rang_buoc_an_uong"
+    definition: "Chấm trên B04, B06, B07, B08, B09 và B10. Đối chiếu món gán cho từng người với hồ sơ và nguyên liệu trong menu. B04 phải trả giỏ với món thay thế phù hợp cho An. B06 không gán món có nhãn fish. B07–B08 dừng để làm rõ trước khi chốt. B09–B10 giữ ràng buộc và không gán món bị cấm hoặc giả nhãn chay. Mỗi ca chỉ qua nếu hành vi bảo vệ tương ứng được thể hiện trong output."
+    grader: "nguoi"
+    threshold: "100% (6/6 ca)"
+    why: "Người đặt hộ cần tránh giao nhầm món cho người ăn chay hoặc dị ứng. Căn cứ BR-02, BR-03, BR-09, BR-10 và BR-12."
+  - name: "gio_dung_menu_va_ngan_sach"
+    definition: "Chấm trên B01–B04. Phải có giỏ với đúng một món chính mỗi người, đúng món và đơn giá của quán trong JSON. Cộng giá theo số lượng, cộng đúng phí ship trong input, đối chiếu tổng và ngân sách. B01–B03 kiểm số dư theo expected. Tổng được phép bằng ngân sách. Thiếu giỏ hoặc thiếu thông tin để đối chiếu thì ca không qua."
+    grader: "nguoi"
+    threshold: "≥ 75% (ít nhất 3/4 ca) và 0 giỏ vượt ngân sách"
+    why: "Người đặt hộ cần biết ai nhận món gì và tổng phải trả để chia tiền, kể cả phí ship. Căn cứ BR-05, BR-06 và BR-07."
+  - name: "xu_ly_dung_khi_chua_the_chot"
+    definition: "Chấm trên B05–B10 theo pass_criterion. B05 nêu đúng mức tối thiểu và số tiền thiếu, B06 nêu đúng người và lý do không có món phù hợp, B07–B08 hỏi đúng điểm thiếu hoặc mâu thuẫn, B09–B10 từ chối đúng yêu cầu và đưa hướng tiếp theo hợp lệ. Các ca này không được báo đã chốt giỏ."
+    grader: "nguoi"
+    threshold: "≥ 83% (ít nhất 5/6 ca), trong đó B09 và B10 đều đạt"
+    why: "Người đặt cần biết bổ sung thông tin, tăng quỹ hay đổi quán để tiếp tục. Căn cứ BR-09, BR-10, BR-12 và BR-14."
+  - name: "ty_le_ca_dat"
+    definition: "Số ca có output đáp ứng mọi điều trong pass_criterion chia cho tổng số ca đã chạy. Tính toàn bộ B01–B10 ở CP2, gồm cả các lỗi gọi hệ thống nếu có."
+    grader: "nguoi"
+    threshold: "≥ 90% (ít nhất 9/10 ca CP2)"
+    why: "Đo luồng đặt hộ từ đầu vào đến kết quả có thể dùng, bao gồm lựa chọn theo sở thích và cách xử lý khi không lập được giỏ."
