@@ -150,7 +150,7 @@ class Handler(BaseHTTPRequestHandler):
             status = 200
         except (ValueError, UnicodeDecodeError):
             status, result = 400, {'error': {'code': 'INVALID_INPUT', 'message': 'JSON không hợp lệ.'}}
-        except AIUnavailable:
+        except (AIUnavailable, NotImplementedError):
             status, result = 502, {'error': {'code': 'AI_UNAVAILABLE', 'message': 'Hệ thống AI tạm thời không phản hồi, vui lòng thử lại.'}}
         except ApiError as exc:
             status, result = exc.status, {'error': {'code': exc.code, 'message': exc.message}}

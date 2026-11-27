@@ -66,6 +66,11 @@ class TestAPI(unittest.TestCase):
         self.assertEqual((status, error['error']['code']), (502, 'AI_UNAVAILABLE'))
         self.assertEqual(self.request('GET', path)[1], draft)
 
+    def test_unconfigured_model_returns_502(self):
+        with mock.patch.object(api.core.llm_steps, 'extract_profile', side_effect=NotImplementedError()):
+            status, result = self.request('POST', '/sessions', {'chat_text': 'An: 300k'})
+        self.assertEqual((status, result['error']['code']), (502, 'AI_UNAVAILABLE'))
+
     def test_restaurants_and_debug(self):
         status, restaurants = self.request('GET', '/restaurants')
         self.assertEqual(status, 200)

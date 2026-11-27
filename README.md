@@ -14,7 +14,7 @@ Cần Python 3.10 trở lên; không cần cài thư viện ngoài. Chạy `pyth
 
 API gồm `POST /sessions` (`{"chat_text":"..."}`), `GET /sessions/{id}`, `POST /sessions/{id}/messages` (`{"text":"..."}`), `POST /sessions/{id}/confirm`, `POST /sessions/{id}/finalize`, `GET /restaurants`, `GET /restaurants/{id}/menu` và `POST /debug/validate-cart`. Dữ liệu phiên lưu trong `sessions.sqlite3`, đã được bỏ qua bởi Git; có thể đặt đường dẫn khác bằng biến `LION_DB_PATH`. Server mặc định chỉ lắng nghe trên máy hiện tại; khóa phiên chỉ phối hợp các luồng trong một tiến trình server.
 
-Để dùng AI thật, cấu hình `.env` theo [hướng dẫn nối model](docs/connect-model.md); không đưa khóa vào Git. API sửa hồ sơ, mở lại và hành động nút chưa có vì đang chờ các hàm tương ứng trong `core.py`. Các nhãn dị ứng CRUSTACEAN/MOLLUSC và nguồn trích chi tiết cũng cần nhóm thống nhất thêm với BA và AI trước khi frontend phụ thuộc vào chúng.
+Phần gọi model thật trong `codebase/ai.py` hiện chưa được triển khai; chỉ cấu hình `.env` chưa đủ. Cần người phụ trách AI nối model theo [hướng dẫn nối model](docs/connect-model.md); không đưa khóa vào Git. API sửa hồ sơ, mở lại và hành động nút chưa có vì đang chờ các hàm tương ứng trong `core.py`. Các nhãn dị ứng CRUSTACEAN/MOLLUSC và nguồn trích chi tiết cũng cần nhóm thống nhất thêm với BA và AI trước khi frontend phụ thuộc vào chúng.
 
 Kiểm thử: `python3 -m unittest discover -s tests -v`.
 
