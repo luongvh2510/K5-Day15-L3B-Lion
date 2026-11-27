@@ -39,7 +39,7 @@ def call_json(system, user, required):
             data = parse_json(call_model(system, prompt)["text"])
             if all(key in data for key in required):
                 return data
-        except ValueError:
+        except (ValueError, RuntimeError, OSError, KeyError, TypeError, IndexError):
             pass
         prompt = user + "\n\nChỉ trả JSON hợp lệ có các khoá: " + ", ".join(required)
     raise AIUnavailable("model không trả JSON hợp lệ")

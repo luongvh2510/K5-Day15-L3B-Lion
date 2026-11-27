@@ -118,6 +118,44 @@ def confirm(session):
     return _plan_cart(session)
 
 
+def reopen(session):
+    """Mở lại hồ sơ, huỷ giỏ và yêu cầu xác nhận lại (BR-12)."""
+    if session["status"] in ("CART_VALID", "CART_INFEASIBLE"):
+        session.update(status="PROFILE_DRAFT", locked=False, cart=None, infeasible=None,
+                       store_id=None, tried=[])
+        _msg(session, "INFO", "Đã mở hồ sơ; giỏ cũ đã huỷ. Vui lòng kiểm tra và xác nhận lại.")
+    return session
+
+
+def edit_profile(session, members):
+    """Thay danh sách thành viên khi hồ sơ đang mở; giữ nguyên câu hỏi chưa xử lý."""
+    if session["status"] != "PROFILE_DRAFT" or session["locked"]:
+        raise ValueError("Hồ sơ chưa mở để sửa")
+    session["profile"]["members"] = copy.deepcopy(members)
+    _msg(session, "INFO", "Đã cập nhật hồ sơ. Vui lòng kiểm tra các câu hỏi còn mở.")
+    return session
+
+
+def set_budget(session, amount):
+    """Cập nhật quỹ rồi lập lại giỏ từ các ràng buộc đã khoá."""
+    if session["status"] in ("CART_VALID", "CART_INFEASIBLE") and type(amount) is int and amount > 0:
+        session["profile"]["budget"] = amount
+        return _plan_cart(session)
+    return session
+
+
+def change_restaurant(session, store_id=None):
+    """Chọn quán khác hoặc lập giỏ tại quán được chỉ định."""
+    if session["status"] not in ("CART_VALID", "CART_INFEASIBLE"):
+        return session
+    if store_id is not None and store_id not in {r["id"] for r in tools.list_restaurants()}:
+        raise ValueError("Quán không tồn tại")
+    if session["store_id"] and session["store_id"] not in session["tried"]:
+        session["tried"].append(session["store_id"])
+    session["store_id"] = store_id
+    return _plan_cart(session)
+
+
 def finalize(session):
     _new_turn(session)
     if session["status"] == "CART_VALID":
