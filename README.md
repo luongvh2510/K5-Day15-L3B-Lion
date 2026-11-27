@@ -8,14 +8,13 @@
 
 **Lát cắt:** Một người đặt hộ cho nhóm 5 người dán đoạn chat và quỹ chung. Sau khi họ xác nhận hồ sơ, hệ thống tự chọn quán và trả giỏ đã kiểm theo menu hoặc giải thích vì sao chưa thể lập giỏ.
 
-## Chạy khung CP2
+## Chạy CLI hoặc API
 
-Chạy `python run.py` và dán dòng sau:
+Cần Python 3.10 trở lên; không cần cài thư viện ngoài. Chạy `python run.py` (hoặc `python3 run.py` nếu máy không có lệnh `python`), rồi chọn `1` cho CLI hoặc `2` cho API. API mở tại `http://127.0.0.1:8000/api`. Có thể mở thẳng API bằng `LION_MODE=web python3 run.py`; dừng bằng Ctrl+C. Nếu frontend chạy ở cổng khác trên cùng máy, API cho phép truy cập CORS.
 
-```text
-Quỹ 300.000đ. Chat: An: phở gà ức | Bình: phở gà ức | Chi: phở gà ức | Dũng: phở gà ức | Hà: phở gà ức
-```
+API gồm `POST /sessions` (`{"chat_text":"..."}`), `GET /sessions/{id}`, `POST /sessions/{id}/messages` (`{"text":"..."}`), `POST /sessions/{id}/confirm`, `POST /sessions/{id}/finalize`, `GET /restaurants`, `GET /restaurants/{id}/menu` và `POST /debug/validate-cart`. Dữ liệu phiên lưu trong `sessions.sqlite3`, đã được bỏ qua bởi Git; có thể đặt đường dẫn khác bằng biến `LION_DB_PATH`. Server mặc định chỉ lắng nghe trên máy hiện tại; khóa phiên chỉ phối hợp các luồng trong một tiến trình server.
 
-Đọc hồ sơ nháp. Để mô phỏng xác nhận, nhập lại dòng đó với tiền tố `Hồ sơ đã xác nhận. `. Hệ thống tự tìm quán từ menu mẫu, kiểm giỏ và trả giỏ đề xuất để duyệt. CLI xử lý từng dòng như một phiên độc lập. Bản CP2 dùng luật mô phỏng thay cho model và phí ship mặc định 15.000đ nếu ca không quy định.
+Để dùng AI thật, cấu hình `.env` theo [hướng dẫn nối model](docs/connect-model.md); không đưa khóa vào Git. API sửa hồ sơ, mở lại và hành động nút chưa có vì đang chờ các hàm tương ứng trong `core.py`. Các nhãn dị ứng CRUSTACEAN/MOLLUSC và nguồn trích chi tiết cũng cần nhóm thống nhất thêm với BA và AI trước khi frontend phụ thuộc vào chúng.
 
-Chạy `python run.py check` để kiểm cấu trúc bộ đánh giá. `python run.py eval --wait 0` chạy qua benchmark và ghi `eval/run-mock.csv` cho bản CP2, có thông báo lượt mô phỏng không được tính là lượt đánh giá model.
+Kiểm thử: `python3 -m unittest discover -s tests -v`.
+

@@ -52,6 +52,20 @@ def _stdin_lines():
 
 
 def main() -> int:
+    mode = os.environ.get("LION_MODE", "").strip().lower()
+    if not mode and sys.stdin.isatty():
+        try:
+            mode = input("Chọn chế độ: 1. CLI (mặc định) · 2. API web: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            return 0
+    if mode in ("web", "2"):
+        sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        from server.api import serve
+        serve()
+        return 0
+    if mode not in ("", "cli", "1"):
+        print("Chế độ không hợp lệ. Chọn 1 hoặc 2.")
+        return 2
     try:
         import tracing
         import core
