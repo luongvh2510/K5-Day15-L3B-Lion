@@ -11,10 +11,10 @@
 
 | STT | Họ và tên | Mã học viên | Vai trò | Phần việc chính |
 |---|---|---|---|---|
-| 1 | Võ Hồng Lương | 2A202603839 | Đội trưởng | ____ |
-| 2 | Hồ Anh Tú | 2A202603811 | Thành viên | ____ |
-| 3 | Phan Trần Mạnh Cường | 2A202603810 | Thành viên | ____ |
-| 4 | Nguyễn Trung Dũng | 2A202604084 | Thành viên | ____ |
+| 1 | Võ Hồng Lương | 2A202603839 | Đội trưởng | AI chính: đọc chat, lập giỏ, thương lượng đa lượt |
+| 2 | Hồ Anh Tú | 2A202603811 | Thành viên | Thiết kế giao diện và frontend |
+| 3 | Phan Trần Mạnh Cường | 2A202603810 | Thành viên | BA: bằng chứng pain, impact, kịch bản demo, slide |
+| 4 | Nguyễn Trung Dũng | 2A202604084 | Thành viên | Backend: dữ liệu quán mẫu, code kiểm giỏ, bộ test; phụ AI |
 
 **Quy tắc điền**
 - **Lớp:** `L3A` hoặc `L3B`. **Track:** một chữ `A` (EdTech), `B` (Y tế), `C` (Du lịch), `D` (Thương mại điện tử), `E` (Tài chính) hoặc `F` (Làn khác). **Link repo:** link GitHub công khai của nhóm.
