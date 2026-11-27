@@ -72,6 +72,24 @@ class TestAPI(unittest.TestCase):
         self.assertFalse(reopened['members'][0]['hard_constraints'][0]['locked'])
         self.assertEqual(self.request('GET', path)[1], reopened)
 
+    def test_actions_recalculate_and_keep_constraints(self):
+        profile = {'budget': 10000, 'members': [{'name': 'An', 'vegetarian': True, 'allergens': {}, 'preferences': [], 'quotes': []}], 'questions': []}
+        with mock.patch.object(api.core.llm_steps, 'extract_profile', return_value=profile):
+            _, draft = self.request('POST', '/sessions', {'chat_text': 'An: chay 10k'})
+        path = '/sessions/' + draft['session_id']
+        self.assertEqual(self.request('POST', path + '/actions', {'action': {'type': 'SET_BUDGET', 'budget': 300000}})[0], 409)
+        _, result = self.request('POST', path + '/confirm')
+        self.assertEqual(result['status'], 'CART_INFEASIBLE')
+        self.assertEqual(self.request('POST', path + '/actions', {'action': {'type': 'SET_BUDGET', 'budget': -1}})[0], 400)
+        self.assertEqual(self.request('POST', path + '/actions', {'action': {'type': 'CHANGE_RESTAURANT', 'restaurant_id': 'missing'}})[0], 404)
+        with mock.patch.object(api.core.llm_steps, 'pick_items', return_value={'picks': [{'member': 'An', 'item_id': 'dish_077', 'reason': 'test'}]}):
+            _, result = self.request('POST', path + '/actions', {'action': {'type': 'SET_BUDGET', 'budget': 300000}})
+        self.assertEqual(result['status'], 'CART_VALID')
+        self.assertTrue(result['members'][0]['hard_constraints'][0]['locked'])
+        _, result = self.request('POST', path + '/actions', {'action': {'type': 'CHANGE_RESTAURANT', 'restaurant_id': 'store_01'}})
+        self.assertEqual(result['status'], 'CART_INFEASIBLE')
+        self.assertTrue(result['members'][0]['hard_constraints'][0]['locked'])
+
     def test_ai_failure_does_not_save_partial_mutations(self):
         profile = {'budget': 300000, 'members': [{'name': 'An', 'vegetarian': False, 'allergens': {}, 'preferences': [], 'quotes': []}], 'questions': []}
         with mock.patch.object(api.core.llm_steps, 'extract_profile', return_value=profile):

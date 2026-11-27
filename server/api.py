@@ -119,7 +119,7 @@ def dispatch(method, path, body):
                 return state(session)
             if method == 'POST' and len(parts) == 3:
                 action = parts[2]
-                allowed = {'messages': ('PROFILE_DRAFT', 'CART_VALID', 'CART_INFEASIBLE'), 'confirm': ('PROFILE_DRAFT',), 'finalize': ('CART_VALID',), 'reopen': ('CART_VALID', 'CART_INFEASIBLE')}
+                allowed = {'messages': ('PROFILE_DRAFT', 'CART_VALID', 'CART_INFEASIBLE'), 'confirm': ('PROFILE_DRAFT',), 'finalize': ('CART_VALID',), 'reopen': ('CART_VALID', 'CART_INFEASIBLE'), 'actions': ('CART_VALID', 'CART_INFEASIBLE')}
                 if action not in allowed:
                     fail(404, 'NOT_FOUND', 'Không tìm thấy đường dẫn.')
                 if session['status'] not in allowed[action]:
@@ -130,6 +130,24 @@ def dispatch(method, path, body):
                     core.confirm(session)
                 elif action == 'reopen':
                     core.reopen(session)
+                elif action == 'actions':
+                    change = body.get('action')
+                    if not isinstance(change, dict):
+                        fail(400, 'INVALID_INPUT', 'Thiếu hành động hợp lệ.')
+                    if change.get('type') == 'SET_BUDGET':
+                        amount = change.get('budget')
+                        if type(amount) is not int or amount <= 0:
+                            fail(400, 'INVALID_INPUT', 'Quỹ phải là số nguyên dương.')
+                        core.set_budget(session, amount)
+                    elif change.get('type') == 'CHANGE_RESTAURANT':
+                        rid = change.get('restaurant_id')
+                        if rid is not None:
+                            if not isinstance(rid, str):
+                                fail(400, 'INVALID_INPUT', 'Mã quán không hợp lệ.')
+                            restaurant(rid)
+                        core.change_restaurant(session, rid)
+                    else:
+                        fail(400, 'INVALID_INPUT', 'Hành động không hợp lệ.')
                 else:
                     core.finalize(session)
                 stamp_messages(session)
