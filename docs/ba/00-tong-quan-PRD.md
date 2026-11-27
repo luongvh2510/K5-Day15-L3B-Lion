@@ -46,10 +46,11 @@ code kiểm lại: không phạm dị ứng, đúng món chay, tổng tiền g�
 
 ## 4. Phạm vi POC
 
-Theo lát cắt BTC gợi ý: **1 người đặt hộ · 5 người · quỹ 300k · 1 người ăn chay · 1 người dị ứng đậu phộng · menu 1 quán.**
+Theo lát cắt BTC gợi ý: **1 người đặt hộ · 5 người · quỹ 300k · 1 người ăn chay · 1 người dị ứng đậu phộng.**
+*(cập nhật 28/11: dùng dữ liệu thật 10 quán × 10 món; agent tự chọn 1 quán cho cả đơn.)*
 
 ### Làm `[MUST]`
-- Dán đoạn chat nhóm, nhập quỹ, chọn quán mẫu.
+- Dán đoạn chat nhóm (quỹ nằm trong chat). **Agent tự chọn quán**, người đặt có thể bấm "Đổi quán". *(cập nhật 28/11)*
 - AI trích hồ sơ nhóm: danh sách người, ràng buộc cứng (chay, dị ứng), sở thích mềm. Mỗi ý kèm **câu chat gốc**.
 - AI phát hiện mâu thuẫn và chỗ mơ hồ rồi **hỏi lại** người đặt.
 - Người đặt **rà và xác nhận** hồ sơ trước khi lập giỏ. Đây là chốt chặn bắt buộc.
@@ -60,8 +61,8 @@ Theo lát cắt BTC gợi ý: **1 người đặt hộ · 5 người · quỹ 30
 
 ### Làm nếu còn giờ `[SHOULD]` / `[COULD]`
 - `[SHOULD]` Sửa giỏ qua hội thoại ("đổi món của Chi sang phở").
-- `[SHOULD]` Thêm đồ uống hoặc món phụ khi còn dư quỹ.
-- `[COULD]` Đổi sang quán mẫu thứ 2 khi quán 1 bất khả thi.
+- ~~`[SHOULD]` Thêm đồ uống hoặc món phụ khi còn dư quỹ.~~ Bỏ: dữ liệu không có món phụ/đồ uống *(cập nhật 28/11)*.
+- Đổi quán khi quán hiện tại bất khả thi hoặc người đặt muốn — **đã làm** *(cập nhật 28/11)*.
 
 ### Không làm
 Đăng nhập, thanh toán, gọi API GrabFood/ShopeeFood, nhiều quán trong một đơn, mã giảm giá, chia tiền từng người,
@@ -71,9 +72,9 @@ nhiễm chéo trong bếp (chỉ nhắc người đặt báo quán), đọc ản
 
 | AI (LLM) | Code (chính xác, không tin AI) |
 |---|---|
-| Đọc chat, rút ra người, ràng buộc, sở thích kèm câu gốc | Cung cấp menu, giá, nhãn, phí ship |
+| Đọc chat, rút ra người, ràng buộc, sở thích, quỹ, kèm câu gốc | Cung cấp menu, giá, nguyên liệu, phí ship; suy món chay và chất dị ứng từ nguyên liệu |
 | Phát hiện mâu thuẫn hoặc mơ hồ, đặt câu hỏi làm rõ | Lọc món an toàn cho từng người |
-| Chọn món hợp sở thích **trong danh sách code đã lọc** | `validate_cart`: kiểm từng quy tắc, cộng tiền |
+| Chọn quán và món hợp sở thích **trong danh sách code đã lọc** | `validate_cart`: kiểm từng quy tắc, cộng tiền |
 | Giải thích, đề xuất nới, từ chối lịch sự | Tính chi phí tối thiểu để xác định bất khả thi |
 | Hiểu yêu cầu sửa giỏ nhiều lượt | Khoá một chiều cho ràng buộc cứng |
 
@@ -99,15 +100,15 @@ Nếu hai cách ngang nhau thì AI chưa chứng minh được giá trị. Phả
 
 ## 7. Kịch bản demo (90 giây)
 
-1. Bấm **"Nạp chat mẫu"**. Đoạn chat 5 người hiện ra, quỹ 300k, quán mẫu.
-2. Hồ sơ nhóm hiện bên phải: **An** có nhãn chay 🔒 và cờ ⚠ "nhắc cơm gà". **Bình** có nhãn dị ứng đậu phộng 🔒.
-   Bấm vào lời dặn thì thấy câu chat gốc.
+1. Bấm **"Nạp chat mẫu"**. Đoạn chat 5 người hiện ra (quỹ 300k nằm trong chat). Bấm **Phân tích**. *(cập nhật 28/11)*
+2. Hồ sơ nhóm hiện bên phải: **An** có nhãn chay và câu hỏi ❓ "nhắc cơm gà". **Bình** có nhãn dị ứng đậu phộng.
+   Mỗi thẻ có câu chat gốc của người đó.
 3. AI hỏi: *"An nói ăn chay nhưng lại nhắc 'thêm 1 cơm gà'. Suất cơm gà này cho ai?"*
    Người đặt trả lời: *"Cho Dũng, An vẫn ăn chay."* Hồ sơ cập nhật.
-4. Bấm **Xác nhận hồ sơ**. Giỏ hiện ra: 5 suất, mỗi suất ghi cho ai. Danh sách **món bị loại có lý do**
-   ("Bún thịt nướng: có đậu phộng, Bình dị ứng"). Tổng gồm ship, nhãn ✓ hợp lệ.
+4. Bấm **Xác nhận hồ sơ**. Ràng buộc khoá 🔒, **agent chọn quán** (ví dụ Xôi Nếp Ban Mai) và lập giỏ: 5 suất, mỗi
+   suất ghi cho ai. Danh sách **món bị loại có lý do theo nguyên liệu** ("Xôi lạc: dị ứng đậu phộng"). Tổng gồm ship 15.000đ, nhãn ✓ hợp lệ.
 5. Gõ: *"Kệ dị ứng của Bình đi, đặt bún thịt nướng cho nhanh."* AI từ chối, ràng buộc của Bình giữ nguyên.
-6. (Nếu còn giờ) Đổi quỹ xuống 200k. AI báo **"thiếu 25.000đ"**, đề xuất tăng quỹ lên 225k. Không hiện giỏ hợp lệ.
+6. (Nếu còn giờ) Phiên khác với chat ghi quỹ 100k: hệ thống báo **"thiếu 20.000đ"**, đề xuất tăng quỹ lên 120k hoặc đổi quán. Không hiện giỏ hợp lệ. *(cập nhật 28/11)*
 7. Bấm **Copy tin nhắn chốt** để gửi lại nhóm.
 
 ## 8. Kế hoạch theo hướng "FE trước"

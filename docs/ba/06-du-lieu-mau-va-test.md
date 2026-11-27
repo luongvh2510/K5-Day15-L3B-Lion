@@ -3,7 +3,20 @@
 > Menu và đoạn chat **tự tạo**, không dùng dữ liệu thật của quán hay người thật.
 > Mọi con số ở đây đã tính tay theo BR-06 và BR-14. Ai sửa menu thì phải tính lại mục 4.
 
-## 1. Quán `r1` — Quán Cơm Nhà Mẫu (phí ship 20.000đ)
+> ⚠️ **Cập nhật 28/11 — phần lớn file này đã CŨ, đọc trước khi dùng:**
+>
+> | Mục | Tình trạng | Dùng gì thay |
+> |---|---|---|
+> | 1–2. Menu `r1`, `r2` (M01…, N01…) | **Bỏ.** Sản phẩm dùng dữ liệu thật | `data/dataset_mon_an_viet.json`: 10 quán `store_01…store_10`, 100 món `dish_001…dish_100`, không có món phụ/đồ uống, không có nhãn chay, ship cố định 15.000đ. Xem menu qua `GET /api/restaurants/{id}/menu` hoặc [`mocks/menu_store_08.json`](mocks/menu_store_08.json) |
+> | 3. Đoạn chat mẫu | **Đổi định dạng** | Tên một dòng, tin nhắn dòng sau (CHAT-01 đã viết lại bên dưới). Quỹ nằm trong chat, không chọn quán |
+> | 4. Bộ ca TC-01…TC-18 | **Không còn là bộ chấm chính thức** (id món, số tiền theo menu cũ) | Bộ chấm chính thức là [`eval/benchmark.csv`](../../eval/benchmark.csv) B01–B10, **đã khoá sau CP2**, chạy bằng `python run.py eval`. TC-xx chỉ còn để tham khảo ý tưởng tình huống |
+> | 5. Cách chấm | Đổi | `python run.py eval` → `eval/run-N.csv`, `python run.py score` theo `eval/metric_spec.yaml` |
+> | 6–7. Hold-out, phiếu đối chứng | Vẫn dùng | Phiếu đối chứng dùng menu quán agent chọn, không dùng `r1` |
+>
+> Ánh xạ ý tưởng TC cũ → câu thử B mới: TC-01 → B03/B04 · TC-03, TC-09 → B09 · TC-03 (chay) → B10 ·
+> TC-05, TC-07 → B05 · TC-08, TC-12 → B06 · TC-11 → B07 · TC-01 (mâu thuẫn) → B08.
+
+## 1. ~~Quán `r1` — Quán Cơm Nhà Mẫu (phí ship 20.000đ)~~ *(cũ, xem đầu file)*
 
 | id | Món | Giá | Loại | Chay | Dị ứng | Rõ TP |
 |---|---|---:|---|:---:|---|:---:|
@@ -28,7 +41,7 @@ Các món được cài sẵn cho các tình huống khó:
 - M06 và M07 là 2 món chính chay duy nhất, **cả hai đều có SOY** → chay + dị ứng đậu nành thì bất khả thi (TC-12).
 - M09 rẻ nhất (40k) → dùng để tính chi phí tối thiểu.
 
-## 2. Quán `r2` — Quán Bún Mẫu (phí ship 15.000đ) — quán ít món chay
+## 2. ~~Quán `r2` — Quán Bún Mẫu~~ *(cũ, xem đầu file)*
 
 | id | Món | Giá | Loại | Chay | Dị ứng | Rõ TP |
 |---|---|---:|---|:---:|---|:---:|
@@ -43,18 +56,24 @@ Các món được cài sẵn cho các tình huống khó:
 
 ## 3. Đoạn chat mẫu
 
-Định dạng `Tên: nội dung`, mỗi dòng một tin. Số dòng bắt đầu từ 1.
+*(cập nhật 28/11)* Định dạng: **tên một dòng, tin nhắn ở dòng sau**; một tin có thể nhiều dòng. Quỹ nằm trong chat,
+không chọn quán (agent chọn). Các CHAT-02…07 bên dưới vẫn viết kiểu cũ `Tên: nội dung`: khi dùng, đổi sang định dạng
+mới và bỏ phần "quán `r1`/`r2`".
 
-**CHAT-01** (demo chính, nút "Nạp chat mẫu", quỹ 300.000đ, quán `r1`)
+**CHAT-01** (demo chính, nút "Nạp chat mẫu"; đã dùng để sinh [`mocks/`](mocks/))
 ```
-Chi: 12h đặt cơm trưa nha mn, quỹ chung 300k nhé
-An: t ăn chay nha, nhớ đó
-Bình: mình dị ứng đậu phộng nặng lắm, đừng có gì dính đậu phộng nha
-Dũng: gì cũng được, nhanh lên đói rồi 😭
-An: à lấy thêm 1 cơm gà nha
-Hà: mình muốn ăn bún
-Bình: cho mình món có nước nha
-Chi: mình ăn gì cũng được
+Chi
+12h đặt cơm trưa nha mn, quỹ chung 300k nhé
+An
+t ăn chay nha, nhớ đó
+Bình
+mình dị ứng đậu phộng nặng lắm, đừng có gì dính đậu phộng nha
+Dũng
+gì cũng được, nhanh lên đói rồi 😭
+An
+à lấy thêm 1 cơm gà nha
+Hà
+mình muốn ăn bún
 ```
 
 **CHAT-02** (món không rõ thành phần, quỹ 300.000đ, `r1`)
@@ -108,7 +127,7 @@ Trang: mình kiêng đồ chiên dạo này
 Đức: mình bị gout, tuyệt đối không hải sản nha
 ```
 
-## 4. Bộ ca thử (`TC-xx`)
+## 4. Bộ ca thử (`TC-xx`) *(cũ — bộ chấm chính thức là `eval/benchmark.csv`, xem đầu file)*
 
 **Hồ sơ HS-01** = hồ sơ của CHAT-01 sau khi trả lời "Cho Dũng, An vẫn ăn chay":
 Chi (—), An (VEGETARIAN), Bình (ALLERGY PEANUT; sở thích: món có nước), Dũng (sở thích: cơm gà), Hà (sở thích: bún).
@@ -135,7 +154,7 @@ Chi phí tối thiểu với `r1`: An 45k + 4 × 40k (M09) + ship 20k = **225.00
 | **TC-17** | HS-01 `CART_VALID`, gõ "à Chi cũng dị ứng trứng" | Chi thêm EGG 🔒, giỏ lập lại, món của Chi ≠ M10 | 12 (thêm được) | SHOULD |
 | **TC-18** | HS-01 `CART_VALID` (tổng 280k), gõ "thêm trà tắc cho cả nhóm" | 5 × 15k = 75k → 355k > 300k → giỏ không đổi, báo vượt 55.000đ | 06 | SHOULD |
 
-## 5. Cách chấm
+## 5. Cách chấm *(cũ — nay chấm bằng `python run.py eval` / `score`)*
 
 - **Phần code chấm tự động được** (TC-01, 03 → 10, 12, 17, 18): so trường JSON của `SessionState` với cột mong đợi.
   Mỗi ca ghi PASS hoặc FAIL kèm lý do.
@@ -158,7 +177,7 @@ BA tự viết thêm **5 đoạn chat** theo văn phong khác: viết tắt nhi�
 
 ## 7. Phiếu đối chứng với form (cho buổi thử người dùng)
 
-Form đối chứng: bảng 5 dòng gồm Tên | Ăn chay (✓) | Dị ứng (ô chữ) | Món chọn (dropdown menu `r1`) | tổng tiền tự cộng.
+Form đối chứng: bảng 5 dòng gồm Tên | Ăn chay (✓) | Dị ứng (ô chữ) | Món chọn (dropdown menu của quán agent đã chọn — *cập nhật 28/11*) | tổng tiền tự cộng.
 
 | Đo | Cách làm |
 |---|---|

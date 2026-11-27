@@ -3,6 +3,21 @@
 > POC 1 ngày. Tài liệu viết theo kiểu **PRD gọn chia nhiều file**, không phải SRS đầy đủ.
 > Mục tiêu: mỗi người đọc 5–10 phút là bắt tay làm được phần của mình.
 
+## Cập nhật 28/11 — thiết kế đã đổi so với bản đầu
+
+Bộ tài liệu đã được rà theo code thật và dữ liệu thật. Chỗ đổi được ghi *(cập nhật 28/11)* ngay trong từng file.
+
+| Thay đổi | Ảnh hưởng | File |
+|---|---|---|
+| Người đặt **chỉ dán chat**: quỹ đọc từ chat (thiếu thì hỏi), **agent tự chọn quán** khi xác nhận, có nút "Đổi quán" | Bỏ ô quỹ, dropdown quán; `POST /sessions` chỉ nhận `{chat_text}` | 00, 02, 03, 04 |
+| Chat dạng **tên một dòng, tin nhắn dòng sau** (một tin có thể nhiều dòng) | Đoạn chat mẫu | 01, 04, 06 |
+| Dữ liệu thật `data/dataset_mon_an_viet.json`: 10 quán `store_xx`, 100 món `dish_xxx`, chỉ món chính, ship cố định 15.000đ | Bỏ menu `r1`/`r2`, món phụ, đồ uống | 01, 04, 06 |
+| **Ăn chay suy từ nguyên liệu**, chay thuần (không trứng, sữa, mắm) | BR-02 | 01 |
+| **10 mã dị ứng theo dữ liệu**: thêm `CRUSTACEAN`, `MOLLUSC`, `CELERY`; bỏ `TREE_NUT`, `SHELLFISH`, `OTHER` | Dropdown dị ứng, prompt | 01, 03, 04 |
+| API thật đã có (`server/api.py`), mock JSON sinh từ API thật ở [`mocks/`](mocks/) | FE dùng mock mới | 03, 04 |
+| Chưa có trong API: câu gốc theo từng ràng buộc, `chat_lines`, `flags`, nút trả lời nhanh | FE hiện câu gốc theo người, gõ câu trả lời | 03, 04 |
+| Bộ chấm chính thức là `eval/benchmark.csv` B01–B10 (khoá sau CP2); TC-xx ở file 06 chỉ còn tham khảo | Cách chấm | 05, 06 |
+
 ## Vì sao PRD chia file mà không viết SRS?
 
 | | PRD chia file (chọn) | SRS đầy đủ |
@@ -24,8 +39,9 @@ Phần "kỹ thuật" của SRS (schema, API, trạng thái) nhóm vẫn cần �
 | [02-use-case-user-story.md](02-use-case-user-story.md) | Use case `UC-xx`, user story `US-xx`, tiêu chí chấp nhận | ✅ | ✅ | ✅ |
 | [03-man-hinh-FE.md](03-man-hinh-FE.md) | Bố cục, trạng thái màn hình, câu chữ, mock | | | ✅✅ |
 | [04-hop-dong-du-lieu-API.md](04-hop-dong-du-lieu-API.md) | Schema, endpoint, mã lỗi, JSON mẫu | | ✅✅ | ✅✅ |
-| [05-AI-agent.md](05-AI-agent.md) | AI quyết định gì / code quyết định gì, tool, prompt, chia việc 2 người AI | | ✅✅ | |
-| [06-du-lieu-mau-va-test.md](06-du-lieu-mau-va-test.md) | Menu mẫu, đoạn chat mẫu, bộ ca thử có đáp án, cách chấm | | ✅✅ | ✅ (menu) |
+| [05-AI-agent.md](05-AI-agent.md) | AI quyết định gì / code quyết định gì, các bước LLM, prompt, chia việc AI–backend | | ✅✅ | |
+| [06-du-lieu-mau-va-test.md](06-du-lieu-mau-va-test.md) | Đoạn chat mẫu, ý tưởng ca thử (menu mẫu và TC-xx đã cũ) | | ✅ | |
+| [mocks/](mocks/) | JSON mẫu sinh từ API thật, FE dùng làm mock | | | ✅✅ |
 
 ## Quy ước mã (để dẫn chiếu chéo)
 

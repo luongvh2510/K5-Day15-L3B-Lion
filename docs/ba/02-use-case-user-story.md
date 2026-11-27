@@ -6,7 +6,7 @@
 ## 1. Luồng tổng (happy path + nhánh chính)
 
 ```
-[UC-01 Nhập chat + quỹ]
+[UC-01 Dán chat (có quỹ)]
         │
         ▼
 [UC-02 AI trích hồ sơ nhóm] ──có mâu thuẫn/mơ hồ──► [UC-03 Hỏi lại] ──trả lời──┐
@@ -24,35 +24,34 @@ Bất kỳ lúc nào sau xác nhận: yêu cầu bỏ ràng buộc cứng ──
 
 ## 2. Use case
 
-### UC-01 · Nhập đoạn chat và quỹ `[MUST]`
+### UC-01 · Dán đoạn chat `[MUST]` *(cập nhật 28/11)*
 - **Tác nhân:** Người đặt hộ
-- **Tiền điều kiện:** Có ít nhất 1 quán mẫu.
+- **Tiền điều kiện:** Có dữ liệu quán (10 quán thật).
 - **Luồng chính:**
-  1. Người đặt dán đoạn chat vào ô nhập, hoặc bấm "Nạp chat mẫu".
-  2. Nhập quỹ (đồng). Quán mẫu được chọn sẵn.
-  3. Bấm "Phân tích".
+  1. Người đặt dán đoạn chat vào ô nhập (tên một dòng, tin nhắn dòng sau), hoặc bấm "Nạp chat mẫu".
+  2. Bấm "Phân tích". **Không nhập quỹ, không chọn quán**: quỹ đọc từ chat, quán do agent chọn ở UC-05.
 - **Ngoại lệ:**
   - Chat rỗng hoặc quá dài (> 4.000 ký tự) → báo lỗi, không gọi AI.
-  - Quỹ ≤ 0 hoặc không phải số → báo lỗi.
+  - Chat không nêu quỹ → hệ thống hỏi "Quỹ chung của nhóm là bao nhiêu?" (UC-03), chưa trả lời thì chưa xác nhận được.
 - **Kết quả:** Một phiên làm việc mới được tạo. Chuyển sang UC-02.
 
 ### UC-02 · AI trích hồ sơ nhóm `[MUST]`
 - **Tác nhân:** Hệ thống (AI)
 - **Luồng chính:**
-  1. AI đọc chat và liệt kê thành viên. Mỗi người có ràng buộc cứng (BR-01) và sở thích, kèm câu gốc (BR-13).
+  1. AI đọc chat và liệt kê thành viên và **quỹ**. Mỗi người có ràng buộc cứng (BR-01) và sở thích, kèm câu gốc theo người (BR-13).
   2. AI gắn cờ cho mỗi mâu thuẫn (BR-09) và mỗi chỗ mơ hồ (BR-10), rồi sinh câu hỏi tương ứng.
   3. Hệ thống hiện hồ sơ nháp và câu hỏi (nếu có).
-- **Ngoại lệ:** AI lỗi hoặc trả sai định dạng → thử lại 1 lần. Vẫn lỗi thì báo "Không đọc được đoạn chat, vui lòng
-  nhập tay" và cho người đặt tự thêm thành viên.
+- **Ngoại lệ:** AI lỗi hoặc trả sai định dạng → thử lại 1 lần. Vẫn lỗi thì báo "Hệ thống AI tạm thời không phản hồi,
+  vui lòng thử lại" (502); phiên chưa được tạo. *(cập nhật 28/11)*
 
 ### UC-03 · Làm rõ mâu thuẫn hoặc mơ hồ `[MUST]`
 - **Tác nhân:** Người đặt hộ, AI
 - **Luồng chính:**
-  1. AI hỏi **một câu một lần**, có nút gợi ý trả lời nếu được.
-  2. Người đặt bấm nút hoặc gõ câu trả lời.
+  1. AI hỏi (có thể nhiều câu cùng lúc, mỗi câu gắn với một người). Chưa có nút gợi ý trả lời *(cập nhật 28/11)*.
+  2. Người đặt gõ câu trả lời.
   3. AI cập nhật hồ sơ, rồi chuyển sang câu tiếp theo hoặc báo "Đã rõ, mời xác nhận".
-- **Ví dụ:** "An ăn chay nhưng nhắc 'thêm 1 cơm gà'. Suất cơm gà này cho ai?" →
-  `[Cho người khác]` `[An ghi nhầm, An vẫn ăn chay]`
+- **Ví dụ:** "An ơi, bạn nói ăn chay nhưng lại xin thêm cơm gà, món gà đó cho bạn hay cho ai?" →
+  người đặt gõ "Suất cơm gà là cho Dũng, An vẫn ăn chay".
 
 ### UC-04 · Rà, sửa và xác nhận hồ sơ `[MUST]`
 - **Tác nhân:** Người đặt hộ
@@ -65,8 +64,8 @@ Bất kỳ lúc nào sau xác nhận: yêu cầu bỏ ràng buộc cứng ──
 ### UC-05 · Lập giỏ và kiểm giỏ `[MUST]`
 - **Tác nhân:** Hệ thống (code + AI)
 - **Luồng chính:**
-  1. Code lọc **món chính an toàn** cho từng người (BR-02 → BR-05).
-  2. Code tính chi phí tối thiểu. Nếu bất khả thi thì sang UC-06 (BR-14).
+  1. Code lọc **món chính an toàn** cho từng người ở **mọi quán** (BR-02 → BR-05) và tính chi phí tối thiểu từng quán.
+  2. Không quán nào khả thi → sang UC-06 (BR-14). Có → **agent chọn quán** hợp sở thích nhóm nhất *(cập nhật 28/11)*.
   3. AI chọn món cho từng người trong danh sách an toàn, theo sở thích (BR-08), kèm lý do ngắn.
   4. Code chạy `validate_cart`. Nếu có vi phạm, AI nhận lỗi và sửa (tối đa 2 lần). Vẫn lỗi thì code tự chọn món
      rẻ nhất an toàn cho từng người (giỏ dự phòng).
@@ -75,14 +74,14 @@ Bất kỳ lúc nào sau xác nhận: yêu cầu bỏ ràng buộc cứng ──
 ### UC-06 · Báo bất khả thi và đề xuất nới `[MUST]`
 - **Tác nhân:** Hệ thống, Người đặt hộ
 - **Luồng chính:**
-  1. Hiện nguyên nhân. (a) "Quán không có món chính nào phù hợp với Bình". (b) "Ít nhất cần 225.000đ, quỹ 200.000đ, thiếu 25.000đ".
-  2. Đề xuất (BR-15): tăng quỹ lên đúng mức tối thiểu, hoặc `[COULD]` đổi quán.
+  1. Hiện nguyên nhân. (a) "Quán không có món chính nào phù hợp với Bình". (b) "Tối thiểu 120.000đ gồm phí ship, quỹ 100.000đ, thiếu 20.000đ" *(số theo `store_08`, cập nhật 28/11)*.
+  2. Đề xuất (BR-15): tăng quỹ lên đúng mức tối thiểu (khi thiếu tiền), và đổi quán.
   3. Người đặt chọn một đề xuất hoặc tự nhập quỹ mới → quay lại UC-05.
 - **Cấm:** đề xuất bỏ dị ứng hoặc bỏ ăn chay. Hiện giỏ có nhãn hợp lệ.
 
 ### UC-07 · Sửa giỏ qua hội thoại `[SHOULD]`
 - **Tác nhân:** Người đặt hộ, AI
-- **Ví dụ:** "Đổi món của Chi sang phở", "thêm 2 trà tắc", "Dũng không ăn cay".
+- **Ví dụ:** "Đổi món của Chi sang phở", "quỹ 250k thôi", "đổi quán khác". (Bỏ "thêm trà tắc": dữ liệu không có đồ uống *(cập nhật 28/11)*.)
 - **Luồng chính:** AI hiểu ý → đổi giỏ → code kiểm lại → hiện giỏ mới. Nếu yêu cầu làm giỏ không hợp lệ
   (vượt quỹ, món không an toàn) thì AI giải thích và giữ giỏ cũ.
 - Thêm ràng buộc cứng mới ("à Chi cũng dị ứng tôm") → **được phép** (khoá một chiều chỉ cấm bớt) → lập lại giỏ.
@@ -99,8 +98,8 @@ Bất kỳ lúc nào sau xác nhận: yêu cầu bỏ ràng buộc cứng ──
 - **Tác nhân:** Người đặt hộ
 - **Luồng chính:** Bấm "Chốt giỏ" → hiện tin nhắn tóm tắt (BR-19) → bấm "Copy".
 
-### UC-10 · Đổi sang quán khác `[COULD]`
-- Chỉ làm nếu còn giờ. Hồ sơ giữ nguyên, lập lại giỏ trên menu quán 2.
+### UC-10 · Đổi sang quán khác `[SHOULD]` — **đã làm** *(cập nhật 28/11)*
+- Nút "Đổi quán" hoặc gõ "đổi quán khác". Hồ sơ giữ nguyên, agent chọn quán khác chưa thử rồi lập lại giỏ.
 
 ## 3. User story và tiêu chí chấp nhận
 
@@ -108,9 +107,9 @@ Bất kỳ lúc nào sau xác nhận: yêu cầu bỏ ràng buộc cứng ──
 
 ### US-01 · Dán chat thay vì tự gõ từng người `[MUST]` · UC-01, UC-02
 **Là** người đặt hộ, **tôi muốn** dán nguyên đoạn chat nhóm, **để** không phải tự đọc lại và điền form cho từng người.
-- **AC1** — Cho trước đoạn chat mẫu 5 người, khi bấm "Phân tích", thì hồ sơ hiện đủ 5 thành viên trong ≤ 15 giây.
+- **AC1** — Cho trước đoạn chat mẫu 5 người, khi bấm "Phân tích", thì hồ sơ hiện đủ 5 thành viên và quỹ 300.000đ trong ≤ 20 giây.
 - **AC2** — Cho trước chat rỗng, khi bấm "Phân tích", thì hiện lỗi "Chưa có nội dung chat" và không gọi API.
-- **AC3** — Cho trước quỹ "abc" hoặc 0, khi bấm "Phân tích", thì hiện lỗi ở ô quỹ.
+- **AC3** — Cho trước chat không nêu quỹ, khi bấm "Phân tích", thì có câu hỏi về quỹ và nút xác nhận bị khoá. *(cập nhật 28/11)*
 
 ### US-02 · Thấy ai ăn được gì, kèm căn cứ `[MUST]` · UC-02, BR-13
 **Là** người đặt hộ, **tôi muốn** thấy ràng buộc của từng người kèm câu chat gốc, **để** tự kiểm tra AI có hiểu đúng không.
@@ -147,10 +146,10 @@ Bất kỳ lúc nào sau xác nhận: yêu cầu bỏ ràng buộc cứng ──
 
 ### US-07 · Biết rõ khi không đủ tiền `[MUST]` · UC-06, BR-14, BR-15, BR-16
 **Là** người đặt hộ, **tôi muốn** biết chính xác thiếu bao nhiêu tiền, **để** quyết định tăng quỹ hay đổi phương án.
-- **AC1** — Cho trước hồ sơ mẫu và quỹ 200.000đ, thì hiện "Thiếu 25.000đ" và đề xuất "Tăng quỹ lên 225.000đ".
+- **AC1** — Cho trước hồ sơ mẫu và chat ghi quỹ 100.000đ, thì hiện "thiếu 20.000đ" và đề xuất "Tăng quỹ lên 120.000đ".
 - **AC2** — Không hiện giỏ có nhãn hợp lệ.
 - **AC3** — Đề xuất không bao giờ chứa việc bỏ ràng buộc cứng.
-- **AC4** — Bấm "Tăng quỹ lên 225.000đ" thì giỏ hợp lệ hiện ra với tổng ≤ 225.000đ.
+- **AC4** — Bấm "Tăng quỹ lên 120.000đ" thì giỏ hợp lệ hiện ra với tổng ≤ 120.000đ.
 - **AC5** — Nếu có người không có món chính an toàn nào, thì hiện tên người đó và lý do, không hiện số tiền thiếu.
 
 ### US-08 · Không bị ép bỏ dị ứng `[MUST]` · UC-08, BR-12
