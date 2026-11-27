@@ -41,7 +41,7 @@ Data BTC cấp đã dùng (nếu có — không commit nguyên file): không dù
 - **GrabFood đơn nhóm (group order):** đáng học — một người tạo đơn và gửi link, mọi người vào chọn, có chia tiền theo món. Đáng né — mỗi người phải tự mở app và tự chọn, không xử lý trường hợp mọi người chỉ nhắn trong chat rồi một người lo hết. Mình khác — nhận thẳng đoạn chat, rút ràng buộc và lập giỏ cho cả nhóm.
 - **ShopeeFood đơn nhóm:** đáng học — gom nhiều người vào một đơn. Đáng né — chỉ một quán mỗi đơn, đổi quán phải tạo đơn khác. Mình khác — báo thẳng thiếu bao nhiêu tiền và đề xuất đổi quán/nới quỹ.
 - **Form khảo sát hoặc bảng tính** (cách ezCater/Fooda khuyên cho đặt cơm văn phòng): đáng học — gom ràng buộc có cấu trúc. Đáng né — người điều phối vẫn phải tự gom và tự đọc. Mình khác — bỏ bước điền form, đọc từ chat có sẵn.
-- *(chờ: ghi tên app từng thành viên đã thử — Lương: __ · Tú: __ · Cường: __ · Dũng: __)*
+- Người phụ trách §3 / bước 2.1: **Phan Trần Mạnh Cường** — app đã thử: __ *(chờ Cường ghi tên app + 1–2 dòng nhận xét thực tế sau khi thử; chưa ghi là đã thử khi chưa thử)*
 
 ## §4. Thiết kế *(guide 2.2, 3.2)*
 
