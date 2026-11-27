@@ -119,7 +119,7 @@ def dispatch(method, path, body):
                 return state(session)
             if method == 'POST' and len(parts) == 3:
                 action = parts[2]
-                allowed = {'messages': ('PROFILE_DRAFT', 'CART_VALID', 'CART_INFEASIBLE'), 'confirm': ('PROFILE_DRAFT',), 'finalize': ('CART_VALID',)}
+                allowed = {'messages': ('PROFILE_DRAFT', 'CART_VALID', 'CART_INFEASIBLE'), 'confirm': ('PROFILE_DRAFT',), 'finalize': ('CART_VALID',), 'reopen': ('CART_VALID', 'CART_INFEASIBLE')}
                 if action not in allowed:
                     fail(404, 'NOT_FOUND', 'Không tìm thấy đường dẫn.')
                 if session['status'] not in allowed[action]:
@@ -128,6 +128,8 @@ def dispatch(method, path, body):
                     core.send(session, text_field(body, 'text'))
                 elif action == 'confirm':
                     core.confirm(session)
+                elif action == 'reopen':
+                    core.reopen(session)
                 else:
                     core.finalize(session)
                 stamp_messages(session)

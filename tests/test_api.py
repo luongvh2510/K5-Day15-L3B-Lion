@@ -56,6 +56,22 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(self.request('GET', '/sessions/missing')[0], 404)
         self.assertEqual(self.request('GET', '/restaurants/missing/menu')[0], 404)
 
+    def test_reopen_discards_cart_and_unlocks(self):
+        profile = {'budget': 300000, 'members': [{'name': 'An', 'vegetarian': True, 'allergens': {}, 'preferences': [], 'quotes': []}], 'questions': []}
+        with mock.patch.object(api.core.llm_steps, 'extract_profile', return_value=profile):
+            _, draft = self.request('POST', '/sessions', {'chat_text': 'An: chay 300k'})
+        path = '/sessions/' + draft['session_id']
+        self.assertEqual(self.request('POST', path + '/reopen')[0], 409)
+        with mock.patch.object(api.core.llm_steps, 'choose_restaurant', return_value={'store_id': 'store_08'}), mock.patch.object(api.core.llm_steps, 'pick_items', return_value={'picks': [{'member': 'An', 'item_id': 'dish_077', 'reason': 'test'}]}):
+            _, cart = self.request('POST', path + '/confirm')
+        self.assertEqual(cart['status'], 'CART_VALID')
+        self.assertTrue(cart['members'][0]['hard_constraints'][0]['locked'])
+        _, reopened = self.request('POST', path + '/reopen')
+        self.assertEqual(reopened['status'], 'PROFILE_DRAFT')
+        self.assertIsNone(reopened['cart'])
+        self.assertFalse(reopened['members'][0]['hard_constraints'][0]['locked'])
+        self.assertEqual(self.request('GET', path)[1], reopened)
+
     def test_ai_failure_does_not_save_partial_mutations(self):
         profile = {'budget': 300000, 'members': [{'name': 'An', 'vegetarian': False, 'allergens': {}, 'preferences': [], 'quotes': []}], 'questions': []}
         with mock.patch.object(api.core.llm_steps, 'extract_profile', return_value=profile):

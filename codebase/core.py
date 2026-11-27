@@ -112,6 +112,15 @@ def confirm(session):
     return _plan_cart(session)
 
 
+def reopen(session):
+    """Mở lại hồ sơ, huỷ giỏ và yêu cầu xác nhận lại (BR-12)."""
+    if session["status"] in ("CART_VALID", "CART_INFEASIBLE"):
+        session.update(status="PROFILE_DRAFT", locked=False, cart=None, infeasible=None,
+                       store_id=None, tried=[])
+        _msg(session, "INFO", "Đã mở hồ sơ; giỏ cũ đã huỷ. Vui lòng kiểm tra và xác nhận lại.")
+    return session
+
+
 def finalize(session):
     if session["status"] == "CART_VALID":
         session["status"] = "FINALIZED"
