@@ -1,0 +1,82 @@
+[
+  {
+    "id": "store_01",
+    "name": "Phở Bếp Sớm",
+    "menu_type": "pho",
+    "summary": "Phở bò và phở gà chan nước dùng, có nhiều lựa chọn phần thịt. Ớt và chanh ăn kèm.",
+    "distance_km": 0.7,
+    "shipping_fee": 15000
+  },
+  {
+    "id": "store_02",
+    "name": "Bún Góc Phố",
+    "menu_type": "bun",
+    "summary": "Các suất bún nước và bún trộn, từ bún bò Huế cay đến bún chả, bún thịt nướng và bún đậu.",
+    "distance_km": 1.4,
+    "shipping_fee": 15000
+  },
+  {
+    "id": "store_03",
+    "name": "Cơm Nhà Mộc",
+    "menu_type": "com",
+    "summary": "Các suất cơm tấm, cơm gà và cơm chiên, ăn cùng món mặn, rau và nước chấm tùy suất.",
+    "distance_km": 1.1,
+    "shipping_fee": 15000
+  },
+  {
+    "id": "store_04",
+    "name": "Hủ Tiếu Bến Nhỏ",
+    "menu_type": "hu_tieu",
+    "summary": "Hủ tiếu nước và hủ tiếu khô, có nhân tôm thịt, cá, mực, sườn và bò kho. Hủ tiếu sa tế có vị cay.",
+    "distance_km": 2.2,
+    "shipping_fee": 15000
+  },
+  {
+    "id": "store_05",
+    "name": "Mì Trứng Hẻm Nhỏ",
+    "menu_type": "mi",
+    "summary": "Mì trứng kiểu Hoa, gồm mì nước với hoành thánh, xá xíu, vịt tiềm và các đĩa mì xào.",
+    "distance_km": 2.5,
+    "shipping_fee": 15000
+  },
+  {
+    "id": "store_06",
+    "name": "Bánh Mì Lò Sớm",
+    "menu_type": "banh_mi",
+    "summary": "Bánh mì nhân mặn và bánh mì chảo một người, có patê, trứng, gà, chả cá và thịt heo.",
+    "distance_km": 0.5,
+    "shipping_fee": 15000
+  },
+  {
+    "id": "store_07",
+    "name": "Cháo Gạo Rang",
+    "menu_type": "chao",
+    "summary": "Cháo mặn theo tô, có cháo gà, vịt, sườn, lòng và cháo hải sản. Vị chủ đạo là gừng, hành và tiêu tùy món.",
+    "distance_km": 1.8,
+    "shipping_fee": 15000
+  },
+  {
+    "id": "store_08",
+    "name": "Xôi Nếp Ban Mai",
+    "menu_type": "xoi",
+    "summary": "Xôi nếp ăn sáng, có xôi mặn với gà, xá xíu, chả lụa và xôi bắp, lạc, đậu cho khách thích vị bùi.",
+    "distance_km": 0.9,
+    "shipping_fee": 15000
+  },
+  {
+    "id": "store_09",
+    "name": "Miến Bếp Nhỏ",
+    "menu_type": "mien",
+    "summary": "Miến dong nước, trộn và xào, có miến gà, ngan, lươn, cua và miến xào chay.",
+    "distance_km": 2.8,
+    "shipping_fee": 15000
+  },
+  {
+    "id": "store_10",
+    "name": "Bánh Canh Sợi Nhà",
+    "menu_type": "banh_canh",
+    "summary": "Bánh canh sợi gạo hoặc bột lọc, gồm các tô giò heo, cá lóc, chả cá, cua, ghẹ và tôm nước cốt dừa.",
+    "distance_km": 3.1,
+    "shipping_fee": 15000
+  }
+]

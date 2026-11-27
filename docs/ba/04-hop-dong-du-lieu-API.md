@@ -3,14 +3,20 @@
 > **File để FE, BE và AI cùng bám vào.** FE làm trước bằng các JSON mẫu ở mục 6. Khi BE xong, chỉ cần đổi nguồn
 > dữ liệu từ mock sang API thật, **không đổi hình dạng JSON**.
 > Muốn đổi schema thì báo BA và ghi vào mục 8 "Nhật ký thay đổi".
+>
+> **Cập nhật 28/11:** file này đã viết lại theo **API thật** (`server/api.py`, `codebase/core.py`, `codebase/tools.py`)
+> và dữ liệu thật `data/dataset_mon_an_viet.json`. Các chỗ khác bản đầu được ghi ở mục 8.
+> Trường đánh dấu **(chưa có)** đã có trong hình dạng JSON nhưng hiện luôn trả giá trị rỗng/`null`; FE vẫn nên xử lý được.
 
 ## 1. Nguyên tắc chung
 
 - **Mọi API thay đổi phiên đều trả về toàn bộ `SessionState`.** FE chỉ cần render lại từ object này, không phải tự ghép.
 - Tiền: số nguyên, đơn vị **đồng** (`300000`, không phải `300` hay `"300k"`). FE tự định dạng `300.000đ`.
-- ID: chuỗi. Tên trường: `snake_case`. Thời gian: ISO 8601.
+- ID: chuỗi. Tên trường: `snake_case`. Thời gian: ISO 8601 (UTC, đuôi `Z`).
 - Enum viết HOA. Tên hiển thị tiếng Việt do FE ánh xạ (mục 5).
 - Trạng thái nào được gọi API nào: xem mục 3.
+- **Người đặt chỉ dán đoạn chat.** Quỹ được đọc từ chat (thiếu thì hệ thống hỏi). **Quán do agent tự chọn** sau khi
+  xác nhận hồ sơ; người đặt không chọn quán lúc đầu, chỉ có thể bấm "Đổi quán" ở Phase 2.
 
 ## 2. Kiểu dữ liệu
 
@@ -18,76 +24,78 @@
 
 ```ts
 Restaurant {
-  id: string                // "r1"
-  name: string              // "Quán Cơm Nhà Mẫu"
-  shipping_fee: number      // 20000
+  id: string                // "store_08"
+  name: string              // "Xôi Nếp Ban Mai"
+  menu_type: string         // "xoi" | "pho" | "bun" | "com" | "mi" | "mien" | "hu_tieu" | "banh_canh" | "banh_mi" | "chao"
+  summary: string           // mô tả ngắn của quán
+  distance_km: number       // 0.9
+  shipping_fee: number      // 15000 — dữ liệu không có phí ship, POC dùng cố định 15.000đ cho mọi quán
 }
 
-MenuItem {
-  id: string                // "M06"
-  name: string              // "Cơm đậu hũ sốt nấm"
-  price: number             // 45000
-  type: "MAIN" | "SIDE" | "DRINK"
-  vegetarian: boolean | null      // null = không rõ → coi là KHÔNG chay (BR-02)
-  allergens: Allergen[]           // ["SOY"]
-  ingredients_known: boolean      // false → BR-04
+MenuItem {                  // mọi món trong dữ liệu đều là món chính (1 suất/người), không có món phụ/đồ uống
+  id: string                // "dish_071"
+  name: string              // "Xôi gà xé"
+  price: number             // 35000
+  ingredients: string[]     // mã nguyên liệu: ["sticky_rice", "chicken_breast", "fish_sauce", ...]
+  allergens: Allergen[]     // chữ thường: ["fish", "soy", "wheat"]
+  allergen_sources: { [tag: string]: string[] }   // {"fish": ["Nước mắm cá cơm và muối"]} — tên nguyên liệu gây dị ứng
+  animal_ingredients: string[]  // tên nguyên liệu nguồn động vật: ["Ức gà", "Nước mắm cá cơm và muối"]
+  vegetarian: boolean       // code TỰ SUY từ nguyên liệu (BR-02), không phải nhãn của quán
   available: boolean
+  ingredients_known: boolean    // false → BR-04 (dữ liệu hiện tại: mọi món đều true)
 }
 
-Allergen = "PEANUT" | "TREE_NUT" | "SOY" | "WHEAT" | "EGG" | "MILK"
-         | "SHELLFISH" | "FISH" | "SESAME" | "OTHER"
+// Mã dị ứng lấy đúng theo dữ liệu (allergen_types), 10 mã, CHỮ THƯỜNG ở menu:
+Allergen = "fish" | "crustacean" | "mollusc" | "egg" | "milk" | "wheat" | "soy" | "peanut" | "sesame" | "celery"
+// Trong hồ sơ (HardConstraint.allergen) cùng mã nhưng VIẾT HOA: "PEANUT", "CRUSTACEAN", ...
+// Không còn TREE_NUT, SHELLFISH, OTHER. Dị ứng ngoài 10 mã → hệ thống hỏi lại, không tạo ràng buộc.
 ```
 
 ### 2.2 Hồ sơ nhóm
 
 ```ts
-ChatLine {
-  line: number              // số dòng, bắt đầu từ 1
-  speaker: string | null    // "An"; null nếu không tách được người nói
+ChatLine {                  // (chưa có) chat_lines hiện luôn là []
+  line: number
+  speaker: string | null
   text: string
 }
 
 Source {
-  kind: "CHAT" | "HOST"     // HOST = người đặt tự thêm hoặc trả lời câu hỏi
-  line: number | null       // dòng chat gốc (kind=CHAT)
-  quote: string | null      // trích nguyên văn
+  kind: "CHAT" | "HOST"     // HOST = người đặt tự thêm qua PATCH /members
+  line: number | null       // (chưa có) luôn null
+  quote: string | null      // (chưa có) luôn null — câu gốc hiện nằm ở Member.quotes
 }
 
 HardConstraint {
-  id: string
+  id: string                // "m2-vegetarian", "m3-peanut"
   type: "VEGETARIAN" | "ALLERGY"
-  allergen: Allergen | null // bắt buộc khi type=ALLERGY
-  note: string | null       // mô tả khi allergen=OTHER
+  allergen: string | null   // mã viết hoa, bắt buộc khi type=ALLERGY: "PEANUT"
+  note: null                // không dùng (bỏ OTHER)
   source: Source
   locked: boolean           // true sau khi xác nhận hồ sơ (BR-12)
 }
 
 Preference {
-  id: string
-  text: string              // "muốn ăn bún", "món có nước"
+  id: string                // "m4-p1"
+  text: string              // "cơm gà", "muốn ăn bún"
   source: Source
 }
 
-Flag {
-  type: "CONFLICT" | "AMBIGUOUS"
-  message: string           // "Nói ăn chay nhưng nhắc 'cơm gà'"
-  question_id: string
-}
-
 Member {
-  id: string                // "m1"
+  id: string                // "m1", "m2"… theo thứ tự xuất hiện; KHÔNG ổn định nếu PATCH đổi thứ tự/xoá người
   name: string
   origin: "CHAT" | "HOST_ADDED"
   hard_constraints: HardConstraint[]
   preferences: Preference[]
-  flags: Flag[]             // chỉ còn cờ của câu hỏi chưa trả lời
+  flags: []                 // (chưa có) luôn [] — mâu thuẫn/mơ hồ chỉ thể hiện qua questions
+  quotes: string[]          // MỚI: các câu chat gốc của người này, dạng "An: t ăn chay nha, nhớ đó"
 }
 
 Question {
-  id: string
+  id: string                // "q1"
   member_id: string | null
   text: string
-  options: { id: string, label: string }[]   // có thể rỗng → người đặt tự gõ
+  options: []               // (chưa có) luôn [] → người đặt tự gõ câu trả lời
   status: "OPEN" | "ANSWERED"
 }
 ```
@@ -96,35 +104,41 @@ Question {
 
 ```ts
 Message {
-  id: string
+  id: string                // "msg1"
   role: "user" | "assistant"
   kind: "TEXT" | "QUESTION" | "REFUSAL" | "INFO"   // FE tô màu khác cho REFUSAL
   text: string
-  question_id: string | null
+  question_id: null         // (chưa có) luôn null, kể cả kind=QUESTION
+  turn: number              // MỚI: lượt xử lý tạo ra tin này (tăng mỗi lần confirm/messages/finalize)
   created_at: string
 }
 ```
+
+Tin đầu tiên của phiên là đoạn chat người đặt dán (`role:"user"`, `kind:"TEXT"`).
 
 ### 2.4 Giỏ, kiểm giỏ, bất khả thi
 
 ```ts
 CartLine {
   member_id: string
-  menu_item_id: string
+  menu_item_id: string      // "dish_077"
   name: string
-  type: "MAIN" | "SIDE" | "DRINK"
+  type: "MAIN"              // luôn MAIN
   unit_price: number        // LẤY TỪ MENU (BR-05)
-  qty: number
+  qty: 1
   line_total: number
-  reason: string | null     // "Món có nước, không có đậu phộng"
-  note: string | null       // "Quán không ghi thành phần" (BR-04)
+  reason: string | null     // lý do AI chọn, ngắn
+  note: null                // không dùng (dữ liệu không có món thiếu thành phần)
 }
 
 ExcludedItem {
   member_id: string
   menu_item_id: string
   name: string
-  reasons: { rule: string, text: string }[]   // [{rule:"BR-03", text:"Có đậu phộng"}]
+  reasons: { rule: string, text: string }[]
+  // rule: "BR-02" (không chay) | "BR-03" (dị ứng) | "BR-04" (không rõ thành phần) | "BR-05" (hết món)
+  // text do code sinh, nêu nguyên liệu: "không chay: có Ức gà, Nước mắm cá cơm và muối"
+  //                                     "dị ứng đậu phộng: có Đậu phộng rang"
 }
 
 Cart {
@@ -133,37 +147,30 @@ Cart {
   shipping_fee: number
   total: number             // subtotal + shipping_fee
   budget: number
-  remaining: number         // budget - total (≥ 0 khi hợp lệ)
-  excluded: ExcludedItem[]  // chỉ món chính, chỉ cho thành viên có ràng buộc cứng
+  remaining: number         // budget - total (≥ 0)
+  excluded: ExcludedItem[]  // mọi món bị loại, chỉ cho thành viên có ràng buộc cứng
   built_by: "AI" | "FALLBACK"
 }
 
-Violation {
-  code: "NOT_IN_MENU" | "UNAVAILABLE" | "PRICE_MISMATCH" | "NOT_VEGETARIAN"
-      | "ALLERGEN" | "UNKNOWN_INGREDIENTS" | "MISSING_MAIN" | "EXTRA_MAIN"
-      | "UNKNOWN_MEMBER" | "OVER_BUDGET"
-  rule: string              // "BR-03"
-  member_id: string | null
-  menu_item_id: string | null
-  message: string
-}
-
 Validation {
-  ok: boolean               // true ⇔ violations rỗng
-  violations: Violation[]
+  ok: boolean               // hiện luôn true khi có cart (giỏ chỉ được tạo sau khi validate_cart không lỗi)
+  violations: []
 }
 
 Action =
   | { type: "SET_BUDGET", budget: number }
-  | { type: "CHANGE_RESTAURANT", restaurant_id: string }     // [COULD]
+  | { type: "CHANGE_RESTAURANT", restaurant_id?: string }   // không gửi restaurant_id → agent tự chọn quán khác;
+  //   nếu đang CART_VALID mà không quán nào khác lập được giỏ thì GIỮ giỏ cũ và thêm tin INFO "…giữ giỏ ở {quán}".
+  //   Có restaurant_id → luôn lập giỏ ở quán đó (có thể ra CART_INFEASIBLE để người đặt thấy lý do).
 
 Infeasible {
   kind: "NO_SAFE_ITEM" | "OVER_BUDGET"
   members_without_option: string[]   // member_id, khi kind=NO_SAFE_ITEM
-  min_total: number | null           // khi kind=OVER_BUDGET
+  min_total: number | null           // khi kind=OVER_BUDGET, đã gồm ship
   shortfall: number | null           // min_total - budget
-  message: string                    // câu AI viết, đã có số liệu từ code
-  options: { id: string, label: string, action: Action }[]
+  message: string                    // câu do code viết, có số liệu
+  options: { id: "budget" | "restaurant", label: string, action: Action }[]
+  // OVER_BUDGET: [Tăng quỹ lên {min_total}] + [Đổi quán]; NO_SAFE_ITEM: chỉ [Đổi quán]
 }
 ```
 
@@ -175,14 +182,14 @@ SessionStatus = "PROFILE_DRAFT" | "CART_VALID" | "CART_INFEASIBLE" | "FINALIZED"
 SessionState {
   session_id: string
   status: SessionStatus
-  restaurant: Restaurant
-  budget: number
-  chat_lines: ChatLine[]
+  restaurant: Restaurant | null   // null ở PROFILE_DRAFT (chưa chọn quán)
+  budget: number | null           // null nếu chat không nêu quỹ (khi đó có câu hỏi về quỹ)
+  chat_lines: []                  // (chưa có)
   members: Member[]
   questions: Question[]
-  can_confirm: boolean      // = status==PROFILE_DRAFT && members.length>0 && không có question OPEN
+  can_confirm: boolean            // = status==PROFILE_DRAFT && có thành viên && có quỹ && không còn question OPEN
   messages: Message[]
-  cart: Cart | null         // có khi CART_VALID / FINALIZED
+  cart: Cart | null               // có khi CART_VALID / FINALIZED
   validation: Validation | null
   infeasible: Infeasible | null   // có khi CART_INFEASIBLE
   final_message: string | null    // có khi FINALIZED
@@ -200,12 +207,12 @@ SessionState {
                └───────┬───────┘                               │
           POST /confirm│ (chỉ khi can_confirm)                 │ POST /reopen
                        ▼                                       │ (huỷ giỏ, mở khoá)
-            ┌──── code tính khả thi ────┐                      │
+       agent chọn quán → code tính khả thi                     │
             ▼                           ▼                      │
      ┌────────────┐  POST /actions ┌─────────────────┐         │
-     │ CART_VALID │◄───SET_BUDGET──│ CART_INFEASIBLE │─────────┤
-     └─────┬──────┘                └─────────────────┘         │
-           │  POST /messages (sửa giỏ, thêm ràng buộc) ─ tự quay về VALID/INFEASIBLE
+     │ CART_VALID │◄─SET_BUDGET /──│ CART_INFEASIBLE │─────────┤
+     └─────┬──────┘ CHANGE_REST.   └─────────────────┘         │
+           │  POST /messages (đổi món, thêm ràng buộc, đổi quỹ, đổi quán) ─ tự quay về VALID/INFEASIBLE
            │──────────────────────────────────────────────────►┘
            │ POST /finalize
            ▼
@@ -217,7 +224,7 @@ SessionState {
 | API | PROFILE_DRAFT | CART_VALID | CART_INFEASIBLE | FINALIZED |
 |---|:---:|:---:|:---:|:---:|
 | `PATCH /members` | ✅ | ❌ 409 | ❌ 409 | ❌ 409 |
-| `POST /messages` | ✅ trả lời câu hỏi | ✅ sửa giỏ | ✅ | ❌ 409 |
+| `POST /messages` | ✅ trả lời câu hỏi, bổ sung hồ sơ | ✅ sửa giỏ | ✅ | ❌ 409 |
 | `POST /confirm` | ✅ nếu `can_confirm` | ❌ 409 | ❌ 409 | ❌ 409 |
 | `POST /reopen` | ❌ 409 | ✅ | ✅ | ❌ 409 |
 | `POST /actions` | ❌ 409 | ✅ | ✅ | ❌ 409 |
@@ -225,232 +232,111 @@ SessionState {
 
 ## 4. Endpoint
 
-Gốc: `/api`. Mọi response lỗi có dạng: `{ "error": { "code": "STRING", "message": "câu tiếng Việt" } }`.
+Gốc: `http://127.0.0.1:8000/api` (chạy `python run.py`, chọn `2`). Có CORS `*`.
+Mọi response lỗi có dạng: `{ "error": { "code": "STRING", "message": "câu tiếng Việt" } }`.
 
 | Method | Path | Body | Trả về | Ghi chú |
 |---|---|---|---|---|
-| GET | `/restaurants` | — | `Restaurant[]` | |
+| GET | `/restaurants` | — | `Restaurant[]` | 10 quán |
 | GET | `/restaurants/{id}/menu` | — | `{ restaurant, items: MenuItem[] }` | |
-| POST | `/sessions` | `{ chat_text, budget, restaurant_id, include_host?: {name} }` | `SessionState` | Gọi AI trích hồ sơ (UC-02). Có thể mất 5–15 giây |
-| GET | `/sessions/{id}` | — | `SessionState` | |
-| POST | `/sessions/{id}/messages` | `{ text, question_id?, option_id? }` | `SessionState` | Bấm nút trả lời thì gửi `option_id` + `label` vào `text` |
-| PATCH | `/sessions/{id}/members` | `{ members: Member[] }` | `SessionState` | Thay toàn bộ danh sách. Ràng buộc mới tạo bởi FE có `source.kind="HOST"` |
-| POST | `/sessions/{id}/confirm` | — | `SessionState` | Khoá ràng buộc → lập giỏ → `CART_VALID` hoặc `CART_INFEASIBLE` |
-| POST | `/sessions/{id}/reopen` | — | `SessionState` | Về `PROFILE_DRAFT`, `cart=null`, mở khoá |
-| POST | `/sessions/{id}/actions` | `{ action: Action }` | `SessionState` | Chọn đề xuất nới |
+| POST | `/sessions` | `{ chat_text }` | `SessionState` | Chỉ có đoạn chat. Gọi AI trích hồ sơ + quỹ. Mất 5–20 giây |
+| GET | `/sessions/{id}` | — | `SessionState` | Không bị chặn khi phiên đang chờ AI |
+| POST | `/sessions/{id}/messages` | `{ text }` | `SessionState` | Câu trả lời / yêu cầu gõ tự do. Không có `question_id`, `option_id` |
+| PATCH | `/sessions/{id}/members` | `{ members: Member[] }` | `SessionState` | Thay toàn bộ danh sách. Mỗi member cần `name`, `hard_constraints[{type, allergen}]`, `preferences[{text}]`. Ràng buộc mới có `source.kind="HOST"` |
+| POST | `/sessions/{id}/confirm` | — | `SessionState` | Khoá ràng buộc → agent chọn quán → lập giỏ → `CART_VALID` / `CART_INFEASIBLE` |
+| POST | `/sessions/{id}/reopen` | — | `SessionState` | Về `PROFILE_DRAFT`, `cart=null`, `restaurant=null`, mở khoá |
+| POST | `/sessions/{id}/actions` | `{ action: Action }` | `SessionState` | Chọn đề xuất nới (tăng quỹ / đổi quán) |
 | POST | `/sessions/{id}/finalize` | — | `SessionState` | Sinh `final_message` |
-| POST | `/debug/validate-cart` | `{ lines, members, restaurant_id, budget }` | `Validation` | Dùng để test validator |
+| POST | `/debug/validate-cart` | `{ store_id, members, selected, budget, shipping }` | `string[]` | Danh sách lỗi (rỗng = hợp lệ). `selected`: mảng dish id theo thứ tự `members` |
 
 Mã lỗi:
 
 | HTTP | `code` | Khi nào |
 |---|---|---|
-| 400 | `INVALID_INPUT` | Chat rỗng, quỹ ≤ 0, quá 4.000 ký tự |
-| 404 | `NOT_FOUND` | Sai session hoặc quán |
-| 409 | `INVALID_STATE` | Gọi API không hợp trạng thái (bảng mục 3) |
-| 409 | `HARD_CONSTRAINT_LOCKED` | PATCH hoặc cập nhật làm mất ràng buộc đã khoá (BR-12) |
+| 400 | `INVALID_INPUT` | Chat rỗng hoặc > 4.000 ký tự, JSON sai, quỹ ≤ 0, mã dị ứng ngoài 10 mã, tên trùng |
+| 404 | `NOT_FOUND` | Sai session, quán hoặc đường dẫn |
+| 409 | `INVALID_STATE` | Gọi API không hợp trạng thái (bảng mục 3), kể cả PATCH khi hồ sơ đã khoá |
+| 500 | `INTERNAL` | Lỗi hệ thống không lường trước. FE hiện "Thử lại" |
 | 502 | `AI_UNAVAILABLE` | LLM lỗi sau khi đã thử lại. FE hiện "Thử lại" |
+
+> Bỏ `409 HARD_CONSTRAINT_LOCKED`: sau khi xác nhận, `PATCH /members` luôn trả `409 INVALID_STATE`;
+> muốn bớt ràng buộc phải `POST /reopen` trước (BR-12).
 
 ## 5. Ánh xạ hiển thị cho FE
 
 | Enum | Hiển thị |
 |---|---|
-| `VEGETARIAN` | 🌱 Ăn chay |
-| `ALLERGY` + `PEANUT` | ⚠️ Dị ứng đậu phộng |
-| `ALLERGY` + `TREE_NUT` / `SOY` / `WHEAT` / `EGG` / `MILK` / `SHELLFISH` / `FISH` / `SESAME` | ⚠️ Dị ứng hạt cây / đậu nành / lúa mì / trứng / sữa / tôm cua mực / cá / mè |
-| `ALLERGY` + `OTHER` | ⚠️ Dị ứng: {note} |
-| `CONFLICT` / `AMBIGUOUS` | ⚠ Mâu thuẫn / ❓ Chưa rõ |
-| `MAIN` / `SIDE` / `DRINK` | Món chính / Món phụ / Đồ uống |
+| `VEGETARIAN` | 🌱 Ăn chay (thuần: không thịt, cá, hải sản, trứng, sữa, mắm) |
+| `ALLERGY` + `PEANUT` / `SOY` / `WHEAT` / `EGG` / `MILK` / `FISH` / `CRUSTACEAN` / `MOLLUSC` / `SESAME` / `CELERY` | ⚠️ Dị ứng đậu phộng / đậu nành / lúa mì / trứng / sữa / cá / giáp xác (tôm, cua) / nhuyễn thể (mực, nghêu, hàu) / mè / cần tây |
+| `REFUSAL` | 🛡️ bong bóng nền đỏ nhạt |
 | `built_by: FALLBACK` | (nhỏ) "Giỏ dự phòng: chọn món rẻ nhất an toàn" |
 
 ## 6. JSON mẫu (dùng làm mock cho FE)
 
-Dữ liệu đầy đủ của menu và đoạn chat ở [06](06-du-lieu-mau-va-test.md) (`r1`, `CHAT-01`).
-Gợi ý: lưu mỗi mẫu dưới đây thành một file trong `frontend/mocks/`.
+Các file trong [`mocks/`](mocks/) được **sinh từ API thật với model thật** (28/11, `deepseek/deepseek-v4.1-flash`),
+chạy kịch bản demo ở file 00 mục 7. Dùng thẳng làm mock; khi nối API thật không cần đổi component.
 
-### 6.1 `session_draft.json` — vừa phân tích xong, còn 1 câu hỏi
+| File | Trạng thái | Nội dung |
+|---|---|---|
+| [`session_draft.json`](mocks/session_draft.json) | `PROFILE_DRAFT` | Vừa phân tích xong, 1 câu hỏi về An (chay nhưng nhắc cơm gà), `can_confirm=false` |
+| [`session_draft_answered.json`](mocks/session_draft_answered.json) | `PROFILE_DRAFT` | Đã trả lời "cơm gà cho Dũng", `can_confirm=true` |
+| [`session_cart_valid.json`](mocks/session_cart_valid.json) | `CART_VALID` | Agent chọn `store_08`, giỏ 5 suất, tổng 134.000đ, có `excluded` kèm nguyên liệu |
+| [`session_refusal.json`](mocks/session_refusal.json) | `CART_VALID` | Sau câu "kệ dị ứng của Bình đi": tin `REFUSAL`, giỏ giữ nguyên |
+| [`session_finalized.json`](mocks/session_finalized.json) | `FINALIZED` | Có `final_message` |
+| [`session_infeasible.json`](mocks/session_infeasible.json) | `CART_INFEASIBLE` | Quỹ 100k: `OVER_BUDGET`, `min_total=120000`, `shortfall=20000`, 2 nút |
+| [`restaurants.json`](mocks/restaurants.json) | — | `GET /restaurants` |
+| [`menu_store_08.json`](mocks/menu_store_08.json) | — | `GET /restaurants/store_08/menu` |
 
-```json
-{
-  "session_id": "s_demo",
-  "status": "PROFILE_DRAFT",
-  "restaurant": { "id": "r1", "name": "Quán Cơm Nhà Mẫu", "shipping_fee": 20000 },
-  "budget": 300000,
-  "chat_lines": [
-    { "line": 1, "speaker": "Chi", "text": "12h đặt cơm trưa nha mn, quỹ chung 300k nhé" },
-    { "line": 2, "speaker": "An", "text": "t ăn chay nha, nhớ đó" },
-    { "line": 3, "speaker": "Bình", "text": "mình dị ứng đậu phộng nặng lắm, đừng có gì dính đậu phộng nha" },
-    { "line": 4, "speaker": "Dũng", "text": "gì cũng được, nhanh lên đói rồi 😭" },
-    { "line": 5, "speaker": "An", "text": "à lấy thêm 1 cơm gà nha" },
-    { "line": 6, "speaker": "Hà", "text": "mình muốn ăn bún" },
-    { "line": 7, "speaker": "Bình", "text": "cho mình món có nước nha" },
-    { "line": 8, "speaker": "Chi", "text": "mình ăn gì cũng được" }
-  ],
-  "members": [
-    {
-      "id": "m1", "name": "Chi", "origin": "CHAT",
-      "hard_constraints": [], "preferences": [], "flags": []
-    },
-    {
-      "id": "m2", "name": "An", "origin": "CHAT",
-      "hard_constraints": [
-        { "id": "c1", "type": "VEGETARIAN", "allergen": null, "note": null,
-          "source": { "kind": "CHAT", "line": 2, "quote": "t ăn chay nha" }, "locked": false }
-      ],
-      "preferences": [],
-      "flags": [
-        { "type": "CONFLICT", "message": "Nói ăn chay nhưng nhắc \"lấy thêm 1 cơm gà\"", "question_id": "q1" }
-      ]
-    },
-    {
-      "id": "m3", "name": "Bình", "origin": "CHAT",
-      "hard_constraints": [
-        { "id": "c2", "type": "ALLERGY", "allergen": "PEANUT", "note": null,
-          "source": { "kind": "CHAT", "line": 3, "quote": "mình dị ứng đậu phộng nặng lắm" }, "locked": false }
-      ],
-      "preferences": [
-        { "id": "p1", "text": "món có nước", "source": { "kind": "CHAT", "line": 7, "quote": "cho mình món có nước nha" } }
-      ],
-      "flags": []
-    },
-    {
-      "id": "m4", "name": "Dũng", "origin": "CHAT",
-      "hard_constraints": [], "preferences": [], "flags": []
-    },
-    {
-      "id": "m5", "name": "Hà", "origin": "CHAT",
-      "hard_constraints": [],
-      "preferences": [
-        { "id": "p2", "text": "muốn ăn bún", "source": { "kind": "CHAT", "line": 6, "quote": "mình muốn ăn bún" } }
-      ],
-      "flags": []
-    }
-  ],
-  "questions": [
-    { "id": "q1", "member_id": "m2",
-      "text": "An nói ăn chay nhưng lại nhắc \"lấy thêm 1 cơm gà\". Suất cơm gà này cho ai?",
-      "options": [
-        { "id": "o1", "label": "Cho người khác trong nhóm" },
-        { "id": "o2", "label": "An ghi nhầm, An vẫn ăn chay" }
-      ],
-      "status": "OPEN" }
-  ],
-  "can_confirm": false,
-  "messages": [
-    { "id": "msg1", "role": "assistant", "kind": "INFO", "question_id": null,
-      "text": "Mình đọc được 5 người: Chi, An, Bình, Dũng, Hà. Có 1 chỗ cần bạn làm rõ.",
-      "created_at": "2026-11-27T05:00:00Z" },
-    { "id": "msg2", "role": "assistant", "kind": "QUESTION", "question_id": "q1",
-      "text": "An nói ăn chay nhưng lại nhắc \"lấy thêm 1 cơm gà\". Suất cơm gà này cho ai?",
-      "created_at": "2026-11-27T05:00:01Z" }
-  ],
-  "cart": null, "validation": null, "infeasible": null, "final_message": null
-}
+Đoạn chat dùng để sinh mẫu (định dạng: tên một dòng, tin nhắn dòng sau; một tin có thể nhiều dòng):
+
+```text
+Chi
+12h đặt cơm trưa nha mn, quỹ chung 300k nhé
+An
+t ăn chay nha, nhớ đó
+Bình
+mình dị ứng đậu phộng nặng lắm, đừng có gì dính đậu phộng nha
+Dũng
+gì cũng được, nhanh lên đói rồi 😭
+An
+à lấy thêm 1 cơm gà nha
+Hà
+mình muốn ăn bún
 ```
 
-Sau khi người đặt trả lời *"Cho Dũng, An vẫn ăn chay"*: `q1.status="ANSWERED"`, cờ của An biến mất,
-Dũng có thêm preference `{ "text": "cơm gà", "source": { "kind": "HOST", "line": null, "quote": "Cho Dũng" } }`,
-và `can_confirm` thành `true`.
-
-### 6.2 `session_cart_valid.json` — đã xác nhận, giỏ hợp lệ (chỉ ghi các trường thay đổi)
+Lỗi 502 (mock `error_ai.json` FE tự tạo):
 
 ```json
-{
-  "status": "CART_VALID",
-  "can_confirm": false,
-  "cart": {
-    "lines": [
-      { "member_id": "m1", "menu_item_id": "M02", "name": "Cơm sườn nướng", "type": "MAIN",
-        "unit_price": 50000, "qty": 1, "line_total": 50000, "reason": "Chi ăn gì cũng được", "note": null },
-      { "member_id": "m2", "menu_item_id": "M06", "name": "Cơm đậu hũ sốt nấm", "type": "MAIN",
-        "unit_price": 45000, "qty": 1, "line_total": 45000, "reason": "Món chay có nhãn của quán", "note": null },
-      { "member_id": "m3", "menu_item_id": "M05", "name": "Phở bò", "type": "MAIN",
-        "unit_price": 60000, "qty": 1, "line_total": 60000, "reason": "Món có nước, không có đậu phộng", "note": null },
-      { "member_id": "m4", "menu_item_id": "M01", "name": "Cơm gà xối mỡ", "type": "MAIN",
-        "unit_price": 55000, "qty": 1, "line_total": 55000, "reason": "Suất cơm gà An nhắc cho Dũng", "note": null },
-      { "member_id": "m5", "menu_item_id": "M03", "name": "Bún thịt nướng", "type": "MAIN",
-        "unit_price": 50000, "qty": 1, "line_total": 50000, "reason": "Hà muốn ăn bún", "note": null }
-    ],
-    "subtotal": 260000, "shipping_fee": 20000, "total": 280000,
-    "budget": 300000, "remaining": 20000,
-    "excluded": [
-      { "member_id": "m3", "menu_item_id": "M03", "name": "Bún thịt nướng",
-        "reasons": [ { "rule": "BR-03", "text": "Có đậu phộng" } ] },
-      { "member_id": "m3", "menu_item_id": "M08", "name": "Bún trộn đặc biệt",
-        "reasons": [ { "rule": "BR-04", "text": "Quán không ghi thành phần" } ] },
-      { "member_id": "m2", "menu_item_id": "M01", "name": "Cơm gà xối mỡ",
-        "reasons": [ { "rule": "BR-02", "text": "Không phải món chay" } ] }
-    ],
-    "built_by": "AI"
-  },
-  "validation": { "ok": true, "violations": [] },
-  "infeasible": null
-}
+{ "error": { "code": "AI_UNAVAILABLE", "message": "Hệ thống AI tạm thời không phản hồi, vui lòng thử lại." } }
 ```
 
-> `excluded` trong mẫu được rút gọn. Bản thật liệt kê **mọi** món chính bị loại của An và Bình. FE nên thu gọn,
-> mặc định hiện 3 món.
+> Lưu ý khi đọc mẫu: `message`/`final_message` hiện định dạng tiền kiểu `120,000đ` (dấu phẩy); FE chỉ hiển thị nguyên văn.
+> Trong ví dụ này chỉ 2 quán có món chay, nên agent chọn quán xôi dù Hà muốn bún (sở thích mềm, BR-08).
 
-### 6.3 `session_infeasible.json` — quỹ 200.000đ
-
-```json
-{
-  "status": "CART_INFEASIBLE",
-  "budget": 200000,
-  "cart": null,
-  "validation": null,
-  "infeasible": {
-    "kind": "OVER_BUDGET",
-    "members_without_option": [],
-    "min_total": 225000,
-    "shortfall": 25000,
-    "message": "Với quán này, 5 suất an toàn rẻ nhất cộng phí ship 20.000đ là 225.000đ. Quỹ 200.000đ còn thiếu 25.000đ.",
-    "options": [
-      { "id": "x1", "label": "Tăng quỹ lên 225.000đ", "action": { "type": "SET_BUDGET", "budget": 225000 } }
-    ]
-  }
-}
-```
-
-### 6.4 `session_refusal.json` — sau câu "kệ dị ứng của Bình đi"
-
-`status` vẫn `CART_VALID`, `cart` **giữ nguyên**, thêm vào cuối `messages`:
-
-```json
-{ "id": "msg9", "role": "assistant", "kind": "REFUSAL", "question_id": null,
-  "text": "Mình không bỏ được dị ứng đậu phộng của Bình, vì có thể gây hại thật. Giỏ hiện tại đã an toàn cho Bình. Nếu bạn muốn món khác, mình gợi ý Bún chả hoặc Cơm sườn nướng. Nếu lúc nãy ghi nhầm dị ứng, bạn bấm \"Sửa hồ sơ\".",
-  "created_at": "2026-11-27T05:03:00Z" }
-```
-
-### 6.5 `session_finalized.json`
-
-```json
-{
-  "status": "FINALIZED",
-  "final_message": "🍱 Chốt đơn Quán Cơm Nhà Mẫu\n- Chi: Cơm sườn nướng — 50.000đ\n- An: Cơm đậu hũ sốt nấm (chay) — 45.000đ\n- Bình: Phở bò — 60.000đ\n- Dũng: Cơm gà xối mỡ — 55.000đ\n- Hà: Bún thịt nướng — 50.000đ\nTạm tính 260.000đ + ship 20.000đ = 280.000đ (quỹ 300.000đ, còn 20.000đ)\n📝 Ghi chú cho quán: suất của Bình KHÔNG đậu phộng, kể cả nước chấm/topping; suất của An là món chay."
-}
-```
-
-## 7. Hàm code dùng chung (Python, do AI-2 viết, BE gọi)
+## 7. Hàm code dùng chung (Python, `codebase/tools.py` và `codebase/core.py`)
 
 ```python
-def load_menu(restaurant_id: str) -> tuple[Restaurant, list[MenuItem]]: ...
+# tools.py — không gọi LLM
+def list_restaurants() -> list[dict]: ...                       # [{id, name, menu_type, summary, distance_km}]
+def load_menu(store_id: str) -> dict[str, dict]: ...             # {dish_id: MenuItem không có id}
+def dish_exclusion(member: dict, item: dict) -> str: ...        # "" nếu an toàn, ngược lại lý do
+def safe_mains(member, menu) -> tuple[list[str], dict[str, str]]: ...   # (id an toàn, {id: lý do loại})
+def feasibility(members, options, menu, shipping) -> tuple[list[str], int | None]: ...  # (người không có món, chi phí tối thiểu)
+def validate_cart(members, selected, menu, budget, shipping) -> list[str]: ...          # [] = hợp lệ (BR-02..07)
+def shipping_fee(store_id) -> int: ...                           # 15000
+def store_summary(store_id, members, budget, shipping) -> dict: ...  # {id, name, safe_counts, min_total}
 
-def safe_mains(member: Member, menu: list[MenuItem]) -> tuple[list[MenuItem], list[ExcludedItem]]:
-    """Món chính an toàn với member (BR-02..05) + món bị loại kèm lý do."""
-
-def feasibility(members, menu, budget, shipping_fee) -> Infeasible | None:
-    """BR-14: None nếu khả thi. Không gọi LLM."""
-
-def validate_cart(lines: list[CartLine], members, menu, budget, shipping_fee) -> Validation:
-    """Kiểm MỌI quy tắc BR-02..07. Không gọi LLM. Có unit test riêng."""
-
-def fallback_cart(members, menu, budget, shipping_fee) -> list[CartLine]:
-    """Mỗi người món chính an toàn rẻ nhất. Dùng khi AI sửa 2 lần vẫn lỗi."""
+# core.py — luồng phiên; mọi hàm nhận và trả dict session
+start(chat_text) · confirm(s) · send(s, text) · finalize(s) · render(s)
+reopen(s) · edit_profile(s, members) · set_budget(s, amount) · change_restaurant(s, store_id=None)
 ```
+
+Không có `fallback_cart` riêng: `core._plan_cart` sau 2 lần AI chọn sai sẽ tự lấy món an toàn rẻ nhất cho từng người
+rồi kiểm lại (`built_by="FALLBACK"`).
 
 ## 8. Nhật ký thay đổi
 
 | Ngày | Ai | Thay đổi |
 |---|---|---|
 | 27/11/2026 | BA | Bản đầu |
+| 28/11/2026 | AI (Lương) | Viết lại theo API thật. **Đầu vào:** `POST /sessions` chỉ còn `{chat_text}` (bỏ `budget`, `restaurant_id`, `include_host`); quỹ đọc từ chat, quán do agent chọn khi xác nhận (`restaurant`=`null` ở Phase 1). **Menu:** id `store_xx`/`dish_xxx` theo dữ liệu thật; mọi món là món chính (bỏ `SIDE`/`DRINK`); thêm `ingredients`, `allergen_sources`, `animal_ingredients`; `vegetarian` do code suy từ nguyên liệu; ship cố định 15.000đ. **Dị ứng:** 10 mã theo dữ liệu (thêm `CRUSTACEAN`, `MOLLUSC`, `CELERY`; bỏ `TREE_NUT`, `SHELLFISH`, `OTHER`). **Hồ sơ:** thêm `Member.quotes`; `chat_lines`, `flags`, `source.line/quote`, `question.options`, `message.question_id` chưa có. **Hội thoại:** thêm `Message.turn`; `/messages` chỉ nhận `{text}`. **Hành động:** `CHANGE_RESTAURANT` không cần `restaurant_id`; option id `budget`/`restaurant`. **Lỗi:** thêm `500 INTERNAL`, bỏ `HARD_CONSTRAINT_LOCKED`. **Debug:** `validate-cart` nhận `{store_id, members, selected, budget, shipping}` trả `string[]`. Mock chuyển sang thư mục `mocks/` sinh từ API thật |

@@ -1,0 +1,341 @@
+{
+  "session_id": "b6dd6873",
+  "status": "CART_VALID",
+  "restaurant": {
+    "id": "store_08",
+    "name": "Xôi Nếp Ban Mai",
+    "menu_type": "xoi",
+    "summary": "Xôi nếp ăn sáng, có xôi mặn với gà, xá xíu, chả lụa và xôi bắp, lạc, đậu cho khách thích vị bùi.",
+    "distance_km": 0.9,
+    "shipping_fee": 15000
+  },
+  "budget": 300000,
+  "chat_lines": [],
+  "members": [
+    {
+      "id": "m1",
+      "name": "Chi",
+      "origin": "CHAT",
+      "hard_constraints": [],
+      "preferences": [],
+      "flags": [],
+      "quotes": []
+    },
+    {
+      "id": "m2",
+      "name": "An",
+      "origin": "CHAT",
+      "hard_constraints": [
+        {
+          "id": "m2-vegetarian",
+          "type": "VEGETARIAN",
+          "allergen": null,
+          "note": null,
+          "source": {
+            "kind": "CHAT",
+            "line": null,
+            "quote": null
+          },
+          "locked": true
+        }
+      ],
+      "preferences": [],
+      "flags": [],
+      "quotes": [
+        "An: t ăn chay nha, nhớ đó",
+        "An: à lấy thêm 1 cơm gà nha"
+      ]
+    },
+    {
+      "id": "m3",
+      "name": "Bình",
+      "origin": "CHAT",
+      "hard_constraints": [
+        {
+          "id": "m3-peanut",
+          "type": "ALLERGY",
+          "allergen": "PEANUT",
+          "note": null,
+          "source": {
+            "kind": "CHAT",
+            "line": null,
+            "quote": null
+          },
+          "locked": true
+        }
+      ],
+      "preferences": [],
+      "flags": [],
+      "quotes": [
+        "Bình: mình dị ứng đậu phộng nặng lắm, đừng có gì dính đậu phộng nha"
+      ]
+    },
+    {
+      "id": "m4",
+      "name": "Dũng",
+      "origin": "CHAT",
+      "hard_constraints": [],
+      "preferences": [
+        {
+          "id": "m4-p1",
+          "text": "cơm gà",
+          "source": {
+            "kind": "CHAT",
+            "line": null,
+            "quote": null
+          }
+        }
+      ],
+      "flags": [],
+      "quotes": []
+    },
+    {
+      "id": "m5",
+      "name": "Hà",
+      "origin": "CHAT",
+      "hard_constraints": [],
+      "preferences": [
+        {
+          "id": "m5-p1",
+          "text": "muốn ăn bún",
+          "source": {
+            "kind": "CHAT",
+            "line": null,
+            "quote": null
+          }
+        }
+      ],
+      "flags": [],
+      "quotes": [
+        "Hà: mình muốn ăn bún"
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "q1",
+      "member_id": "m2",
+      "text": "An ơi, bạn nói ăn chay nhưng lại xin thêm cơm gà, món gà đó cho bạn hay cho ai?",
+      "options": [],
+      "status": "ANSWERED"
+    }
+  ],
+  "can_confirm": false,
+  "messages": [
+    {
+      "role": "user",
+      "kind": "TEXT",
+      "text": "Chi\n12h đặt cơm trưa nha mn, quỹ chung 300k nhé\nAn\nt ăn chay nha, nhớ đó\nBình\nmình dị ứng đậu phộng nặng lắm, đừng có gì dính đậu phộng nha\nDũng\ngì cũng được, nhanh lên đói rồi 😭\nAn\nà lấy thêm 1 cơm gà nha\nHà\nmình muốn ăn bún",
+      "turn": 0,
+      "id": "msg1",
+      "created_at": "2026-11-27T18:10:40.010185Z",
+      "question_id": null
+    },
+    {
+      "role": "assistant",
+      "kind": "QUESTION",
+      "text": "An ơi, bạn nói ăn chay nhưng lại xin thêm cơm gà, món gà đó cho bạn hay cho ai?",
+      "turn": 0,
+      "id": "msg2",
+      "created_at": "2026-11-27T18:10:40.010199Z",
+      "question_id": null
+    },
+    {
+      "role": "user",
+      "kind": "TEXT",
+      "text": "Suất cơm gà là cho Dũng, An vẫn ăn chay",
+      "turn": 1,
+      "id": "msg3",
+      "created_at": "2026-11-27T18:10:42.264400Z",
+      "question_id": null
+    },
+    {
+      "role": "assistant",
+      "kind": "INFO",
+      "text": "Đã ghi nhận cơm gà cho Dũng và xác nhận An vẫn ăn chay.",
+      "turn": 1,
+      "id": "msg4",
+      "created_at": "2026-11-27T18:10:42.264403Z",
+      "question_id": null
+    },
+    {
+      "role": "user",
+      "kind": "TEXT",
+      "text": "kệ dị ứng của Bình đi, cho Bình ăn gì cũng được",
+      "turn": 3,
+      "id": "msg5",
+      "created_at": "2026-11-27T18:10:55.641246Z",
+      "question_id": null
+    },
+    {
+      "role": "assistant",
+      "kind": "REFUSAL",
+      "text": "Không thể bỏ ràng buộc ăn chay/dị ứng đã xác nhận qua chat. Nếu hồ sơ ghi nhầm, hãy dùng Sửa hồ sơ rồi xác nhận lại.",
+      "turn": 3,
+      "id": "msg6",
+      "created_at": "2026-11-27T18:10:55.641249Z",
+      "question_id": null
+    }
+  ],
+  "cart": {
+    "lines": [
+      {
+        "member_id": "m1",
+        "menu_item_id": "dish_077",
+        "name": "Xôi đậu xanh",
+        "type": "MAIN",
+        "unit_price": 21000,
+        "qty": 1,
+        "line_total": 21000,
+        "reason": "Chọn rẻ nhất, không dị ứng, không sở thích riêng",
+        "note": null
+      },
+      {
+        "member_id": "m2",
+        "menu_item_id": "dish_077",
+        "name": "Xôi đậu xanh",
+        "type": "MAIN",
+        "unit_price": 21000,
+        "qty": 1,
+        "line_total": 21000,
+        "reason": "Món chay an toàn, rẻ nhất, phù hợp ăn chay",
+        "note": null
+      },
+      {
+        "member_id": "m3",
+        "menu_item_id": "dish_077",
+        "name": "Xôi đậu xanh",
+        "type": "MAIN",
+        "unit_price": 21000,
+        "qty": 1,
+        "line_total": 21000,
+        "reason": "Không đậu phộng, rẻ nhất, an toàn dị ứng",
+        "note": null
+      },
+      {
+        "member_id": "m4",
+        "menu_item_id": "dish_071",
+        "name": "Xôi gà xé",
+        "type": "MAIN",
+        "unit_price": 35000,
+        "qty": 1,
+        "line_total": 35000,
+        "reason": "Có gà, gần với sở thích cơm gà",
+        "note": null
+      },
+      {
+        "member_id": "m5",
+        "menu_item_id": "dish_077",
+        "name": "Xôi đậu xanh",
+        "type": "MAIN",
+        "unit_price": 21000,
+        "qty": 1,
+        "line_total": 21000,
+        "reason": "Không có bún, chọn món rẻ nhất an toàn",
+        "note": null
+      }
+    ],
+    "subtotal": 119000,
+    "shipping_fee": 15000,
+    "total": 134000,
+    "budget": 300000,
+    "remaining": 166000,
+    "excluded": [
+      {
+        "member_id": "m2",
+        "menu_item_id": "dish_071",
+        "name": "Xôi gà xé",
+        "reasons": [
+          {
+            "rule": "BR-02",
+            "text": "không chay: có Ức gà, Nước mắm cá cơm và muối"
+          }
+        ]
+      },
+      {
+        "member_id": "m2",
+        "menu_item_id": "dish_072",
+        "name": "Xôi xá xíu",
+        "reasons": [
+          {
+            "rule": "BR-02",
+            "text": "không chay: có Thịt vai lợn, Dầu hào từ chiết xuất hàu và có bột mì"
+          }
+        ]
+      },
+      {
+        "member_id": "m2",
+        "menu_item_id": "dish_073",
+        "name": "Xôi mặn lạp xưởng tôm khô",
+        "reasons": [
+          {
+            "rule": "BR-02",
+            "text": "không chay: có Thịt lợn xay, Mỡ heo, Vỏ lạp xưởng từ ruột non heo"
+          }
+        ]
+      },
+      {
+        "member_id": "m2",
+        "menu_item_id": "dish_074",
+        "name": "Xôi patê",
+        "reasons": [
+          {
+            "rule": "BR-02",
+            "text": "không chay: có Gan heo, Thịt ba chỉ heo, Mỡ heo"
+          }
+        ]
+      },
+      {
+        "member_id": "m2",
+        "menu_item_id": "dish_075",
+        "name": "Xôi chả lụa",
+        "reasons": [
+          {
+            "rule": "BR-02",
+            "text": "không chay: có Thịt lợn xay, Mỡ heo, Nước mắm cá cơm và muối"
+          }
+        ]
+      },
+      {
+        "member_id": "m2",
+        "menu_item_id": "dish_076",
+        "name": "Xôi xéo",
+        "reasons": [
+          {
+            "rule": "BR-02",
+            "text": "không chay: có Mỡ heo"
+          }
+        ]
+      },
+      {
+        "member_id": "m2",
+        "menu_item_id": "dish_079",
+        "name": "Xôi bắp",
+        "reasons": [
+          {
+            "rule": "BR-02",
+            "text": "không chay: có Mỡ heo"
+          }
+        ]
+      },
+      {
+        "member_id": "m3",
+        "menu_item_id": "dish_078",
+        "name": "Xôi lạc",
+        "reasons": [
+          {
+            "rule": "BR-03",
+            "text": "dị ứng đậu phộng: có Đậu phộng hạt sống"
+          }
+        ]
+      }
+    ],
+    "built_by": "AI"
+  },
+  "validation": {
+    "ok": true,
+    "violations": []
+  },
+  "infeasible": null,
+  "final_message": null
+}
