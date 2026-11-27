@@ -1,4 +1,4 @@
-"""Công cụ chỉ đọc và kiểm giỏ cho bản chạy thử D2."""
+"""Công cụ chỉ đọc và kiểm giỏ cho D2, suy ra từ data/dataset_mon_an_viet.json."""
 
 import json
 from functools import lru_cache
@@ -8,6 +8,12 @@ from tracing import tool
 
 DATA_PATH = Path(__file__).resolve().parents[1] / "data" / "dataset_mon_an_viet.json"
 
+# Ăn chay = không có nguyên liệu động vật, kể cả trứng và sữa (chốt 27/11).
+ANIMAL_CATEGORIES = {"meat", "seafood", "egg", "dairy"}
+ANIMAL_CONDIMENTS = {"fish_sauce", "shrimp_paste", "shrimp_paste_hue", "fermented_gourami",
+                     "fermented_snakehead", "oyster_sauce"}
+SHIPPING_DEFAULT = 15_000
+
 
 @lru_cache(maxsize=1)
 def _dataset():
@@ -15,57 +21,79 @@ def _dataset():
         return json.load(stream)
 
 
+@lru_cache(maxsize=1)
+def _lookups():
+    data = _dataset()
+    ingredients = {item["id"]: item for item in data["ingredients"]}
+    category = {i: c["id"] for c in data["ingredient_categories"] for i in c["ingredient_ids"]}
+    allergen_names = {a["id"]: a["name"] for a in data["allergen_types"]}
+    return ingredients, category, allergen_names
+
+
 @tool
 def list_restaurants():
-    """Liệt kê quán. Input: không có. Output: danh sách mã và tên quán. Không tác động ra ngoài."""
-    return {store["id"]: store["name"] for store in _dataset()["stores"]}
+    """Liệt kê quán. Input: không có. Output: [{id, name, menu_type, summary, distance_km}]. Không tác động ra ngoài."""
+    return [{key: store.get(key) for key in ("id", "name", "menu_type", "summary", "distance_km")}
+            for store in _dataset()["stores"]]
 
 
 @tool
 def load_menu(store_id):
-    """Đọc menu. Input: mã quán. Output: món, giá và nhãn thành phần demo. Không tác động ra ngoài."""
-    data = _dataset()
-    ingredients = {item["id"]: item["allergens"] for item in data["ingredients"]}
+    """Đọc menu một quán. Input: mã quán. Output: {dish_id: món kèm giá, nguyên liệu, dị ứng, chay suy ra}. Không tác động ra ngoài."""
+    ingredients, category, _ = _lookups()
     menu = {}
-    for dish in data["dishes"]:
+    for dish in _dataset()["dishes"]:
         if dish["store_id"] != store_id:
             continue
         ids = [i for group in dish["ingredient_groups"] for i in group["ingredient_ids"]]
+        sources = {}
+        for i in ids:
+            for tag in ingredients.get(i, {}).get("allergens", ()):
+                names = sources.setdefault(tag, [])
+                if ingredients[i]["name"] not in names:
+                    names.append(ingredients[i]["name"])
+        animal = []
+        for i in ids:
+            if (category.get(i) in ANIMAL_CATEGORIES or i in ANIMAL_CONDIMENTS) and ingredients[i]["name"] not in animal:
+                animal.append(ingredients[i]["name"])
         menu[dish["id"]] = {
             "name": dish["name"],
             "price": dish["price_vnd"],
-            "vegetarian": dish.get("vegetarian"),
+            "ingredients": ids,
+            "allergens": sorted(sources),
+            "allergen_sources": sources,
+            "animal_ingredients": animal,
+            "vegetarian": not animal,
             "available": dish.get("available", True),
             "ingredients_known": bool(ids) and all(i in ingredients for i in ids),
-            "allergens": sorted({tag for i in ids for tag in ingredients.get(i, ())}),
         }
     return menu
 
 
-def exclusion(member, item):
-    """Trả lý do loại món theo dữ liệu mô phỏng."""
+def dish_exclusion(member, item):
+    """Lý do loại món cho một thành viên; chuỗi rỗng nếu an toàn."""
     if not item["available"]:
         return "món không còn bán"
-    if (member["vegetarian"] or member["allergens"]) and not item["ingredients_known"]:
+    if (member.get("vegetarian") or member.get("allergens")) and not item["ingredients_known"]:
         return "không rõ thành phần"
-    if member["vegetarian"] and item["vegetarian"] is not True:
-        return "không có nhãn chay đã xác minh"
-    for tag, label in member["allergens"].items():
+    if member.get("vegetarian") and not item["vegetarian"]:
+        return "không chay: có " + ", ".join(item["animal_ingredients"][:3])
+    for tag, label in member.get("allergens", {}).items():
         if tag in item["allergens"]:
-            return f"có {label}"
+            return "dị ứng %s: có %s" % (label, ", ".join(item["allergen_sources"][tag]))
     return ""
 
 
 @tool
 def safe_mains(member, menu):
-    """Lọc món. Input: thành viên và menu. Output: mã món phù hợp và lý do loại. Không tác động ra ngoài."""
-    excluded = {key: reason for key, item in menu.items() if (reason := exclusion(member, item))}
+    """Lọc món an toàn. Input: thành viên và menu. Output: (mã món an toàn, {mã món: lý do loại}). Không tác động ra ngoài."""
+    excluded = {key: reason for key, item in menu.items() if (reason := dish_exclusion(member, item))}
     return [key for key in menu if key not in excluded], excluded
 
 
 @tool
 def feasibility(members, options, menu, shipping):
-    """Tính mức tối thiểu. Input: hồ sơ, món đã lọc, menu và ship. Output: người thiếu món và tổng tối thiểu. Không tác động ra ngoài."""
+    """Tính mức tối thiểu. Input: hồ sơ, món đã lọc từng người, menu, ship. Output: (tên người thiếu món, tổng tối thiểu hoặc None). Không tác động ra ngoài."""
     missing = [member["name"] for member, choices in zip(members, options) if not choices]
     if missing:
         return missing, None
@@ -75,7 +103,7 @@ def feasibility(members, options, menu, shipping):
 
 @tool
 def validate_cart(members, selected, menu, budget, shipping):
-    """Kiểm giỏ. Input: hồ sơ, mã món từng người, menu, quỹ và ship. Output: danh sách lỗi. Không tác động ra ngoài."""
+    """Kiểm giỏ. Input: hồ sơ, mã món từng người, menu, quỹ, ship. Output: danh sách lỗi (rỗng = hợp lệ). Không tác động ra ngoài."""
     if len(selected) != len(members):
         return ["Số suất không khớp số người."]
     errors = []
@@ -86,9 +114,27 @@ def validate_cart(members, selected, menu, budget, shipping):
             continue
         item = menu[key]
         subtotal += item["price"]
-        reason = exclusion(member, item)
+        reason = dish_exclusion(member, item)
         if reason:
             errors.append(f'{member["name"]}: {reason}.')
     if subtotal + shipping > budget:
         errors.append("Vượt ngân sách sau khi cộng phí ship.")
     return errors
+
+
+@tool
+def shipping_fee(store_id):
+    """Phí ship mô phỏng. Input: mã quán. Output: số đồng (data chưa có phí ship, dùng mặc định). Không tác động ra ngoài."""
+    return SHIPPING_DEFAULT
+
+
+@tool
+def store_summary(store_id, members, budget, shipping):
+    """Tóm tắt một quán cho hồ sơ. Input: mã quán, hồ sơ, quỹ, ship. Output: {id, name, safe_counts, min_total}. Không tác động ra ngoài."""
+    menu = load_menu(store_id)
+    options = [safe_mains(member, menu)[0] for member in members]
+    _, minimum = feasibility(members, options, menu, shipping)
+    name = next((s["name"] for s in _dataset()["stores"] if s["id"] == store_id), store_id)
+    return {"id": store_id, "name": name,
+            "safe_counts": {m["name"]: len(o) for m, o in zip(members, options)},
+            "min_total": minimum}
