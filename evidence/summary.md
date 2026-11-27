@@ -8,13 +8,15 @@
 | Nguồn | Đạt ngưỡng? | File |
 |---|---|---|
 | Đào data (x/N, %, cách đếm chạy lại được, ≥5 ví dụ) | ☐ | `evidence/data-mining.md` |
-| Phỏng vấn (≥3 người ngoài nhóm, đúng người dùng) | ☐ | `evidence/interviews/P1.md`… |
+| Phỏng vấn (≥3 người ngoài nhóm, đúng người dùng) | Chờ đối chiếu vai và ghi chép | Nhóm báo đã phỏng vấn **hơn 20 người**. Ghi chép ẩn danh chưa có trong repo. |
 | Khảo sát (≥20 người ngoài nhóm, đúng người dùng) | ☐ | `evidence/survey/` |
 
 ## 2. Số chính
 
 - Đào data: __/__ (__%) …
-- Phỏng vấn: __/3 người gặp *(n nhỏ không ghi %)* · số lần / tháng: P1 __, P2 __, P3 __ · mỗi lần mất __–__ phút
+- Phỏng vấn: **hơn 20 người** theo cập nhật của nhóm. Chưa có số chính xác, số người đúng vai, số người gặp vấn đề, tần suất hay thời gian có thể đối chiếu.
+- Bốn tình huống mô phỏng SIM-01–SIM-04 trong [Data Card](../data/DATA_CARD.md#nguồn-dựng-các-tình-huống-mô-phỏng) dùng để thử quy tắc nghiệp vụ. Số liệu phỏng vấn và trích dẫn nguyên văn cần đối chiếu riêng với ghi chép đã ẩn danh.
+- Cách tổng hợp khi nhận ghi chép: đếm mỗi mã người một lần, lọc theo vai người từng đặt hộ cả nhóm, dùng số người đúng vai có câu trả lời làm mẫu số cho từng vấn đề. Để riêng trường hợp chưa rõ và liên kết từng trích dẫn với mã phỏng vấn.
 - Khảo sát: n = __ · __/__ (__%) …
 
 Phỏng vấn nhiều vai thì đếm theo từng vai, không cộng chung.

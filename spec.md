@@ -20,7 +20,7 @@ Data BTC cấp đã dùng (nếu có — không commit nguyên file): không dù
 - Việc họ cố làm xong (`động từ + đối tượng + bối cảnh`, không có chữ AI): đặt bữa ăn cho cả nhóm từ một quán, trong giới hạn quỹ chung, sao cho ai cũng ăn được món của mình.
 - Hôm nay họ giải bằng gì, hỏng ở đâu, vì sao chưa bỏ: tự đọc chat và tự chọn món trong app giao đồ ăn; hỏng ở chỗ dễ sót lời dặn, khó biết món có thành phần gây dị ứng không, và phí ship làm vượt quỹ. *(giả thuyết, chờ bằng chứng ở `evidence/summary.md`)*
 - Pain (KHÔNG chữ AI): người cầm quỹ đặt hộ cả nhóm — phải đọc lại đoạn chat lộn xộn và dò từng món trong menu — vướng ở chỗ dễ sót lời dặn ăn chay/dị ứng, món không ghi thành phần, và phí ship làm vượt quỹ — hậu quả: mất thời gian làm lại, và nguy cơ đặt nhầm món gây dị ứng.
-- Bằng chứng — số chính + kết luận (chi tiết: `evidence/summary.md`): __ *(chờ Cường: chưa có số khảo sát/phỏng vấn nào được ghi vào repo)*
+- Bằng chứng — số chính + kết luận (chi tiết: `evidence/summary.md`): nhóm báo đã phỏng vấn hơn 20 người. Đang chờ ghi chép ẩn danh để xác định số người đúng vai, số gặp vấn đề và trích dẫn nguyên văn.
 
 ## §2. Impact & quyết định chọn *(guide 1.3)*
 
@@ -110,7 +110,7 @@ flowchart TB
   | `list_restaurants` | không có | danh sách quán mẫu (tên, phí ship, tóm tắt menu: số món chay, chất gây dị ứng hay gặp) | Không |
   | `load_menu` | mã quán do agent chọn | thông tin quán + danh sách món (giá, nhãn chay, chất gây dị ứng, rõ thành phần) | Không |
   | `safe_mains` | một thành viên, menu | món chính an toàn cho người đó + món bị loại kèm lý do | Không |
-  | `feasibility` | thành viên, menu, quỹ, phí ship | không có gì nếu khả thi, hoặc lý do bất khả thi + số tiền thiếu | Không |
+  | `feasibility` | thành viên, món đã lọc, menu, phí ship | người chưa có món phù hợp hoặc tổng tối thiểu để so với quỹ | Không |
   | `validate_cart` | các dòng giỏ, thành viên, menu, quỹ, phí ship | danh sách vi phạm (rỗng = hợp lệ) | Không |
   | `fallback_cart` | thành viên, menu, quỹ, phí ship | giỏ dự phòng (mỗi người món chính an toàn rẻ nhất) | Không |
   | `apply_profile_changes` | danh sách thay đổi do AI đề xuất, hồ sơ hiện tại | hồ sơ mới; bỏ mọi thao tác xoá ràng buộc đã khoá và ghi log | Không |
@@ -174,7 +174,7 @@ flowchart TB
   | G11 — giải thích vì sao | Hồ sơ nhóm hiện câu chat gốc cho từng ràng buộc; món bị loại hiện kèm lý do |
   | G8/G9 — dễ bỏ qua, dễ sửa | Người dùng sửa hồ sơ ngay trước khi xác nhận (cuối Phase 1) và đổi món ở Phase 2 |
 
-- Phần nào còn giả (công cụ trả dữ liệu giả, model chế độ giả…) — ghi rõ, không giả làm thật: *(dự kiến tại CP2)* các bước LLM trả JSON giả cố định, chưa gọi model; menu quán là dữ liệu giả lập (`synthetic`, xem `data/DATA_CARD.md`). Cập nhật mục này khi nối model thật (CP3). Hiện `codebase/` vẫn là khung mẫu.
+- **Bản chạy CP2.** `answer(text)` mô phỏng nhận dạng chat và chọn món bằng quy tắc. Mỗi đầu vào là một phiên độc lập, trường xác nhận hồ sơ trong đầu vào mô phỏng thao tác của người đặt. Code thử các quán ứng viên, ưu tiên giỏ đáp ứng nhiều sở thích rồi đến tổng tiền thấp hơn, và kiểm giỏ trước khi xuất. Menu và phí giao hàng là dữ liệu mô phỏng. CLI chưa lưu phiên giữa các lượt, và chưa gọi model thật hoặc đặt đơn.
 
 ## §5. Chỗ khó — 4 lớp + ≥6 kịch bản + 2 tấn công *(guide 2.3)*
 
@@ -224,7 +224,7 @@ flowchart TB
 
 | Thời điểm | Đổi gì | Vì sao (trỏ về câu thử / lỗi / bằng chứng nào) |
 |---|---|---|
-|  |  |  |
+| Bổ sung hồ sơ CP2 | Ghi mã nguồn mô phỏng SIM-01–SIM-04 và kết quả hai agent chấm độc lập. | B02, B04, B05, B07 có nguồn dựng ca trong Data Card. Kết quả chấm 5 output mô phỏng nằm trong `eval/README.md`. |
 
 **Sau CP4 (đến 23:59 Thứ Bảy 28/11)** (sửa theo góp ý — không sửa chuẩn "đạt", câu thử, số bằng chứng, kết quả các lượt đã chạy)
 
