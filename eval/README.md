@@ -9,9 +9,9 @@ Menu món Việt mô phỏng có 100 món tại 10 quán. B01–B04 cho hệ th�
 
 ## 2. Bộ câu thử dựng ra sao
 
-- `eval/benchmark.csv`: 10 câu (thuong 3 · kho 5 · tu_choi 2, trong đó 2 câu tấn công)
-- Nguồn (`python run.py check` in sẵn): nguoi_dung 0 · data_that 0 · tu_viet 10 · sinh_seed 0. Hiện có 0/10 ca từ người dùng hoặc dữ liệu thật. Cần ít nhất 4/10 ca để đạt tỷ lệ 1/3.
-- Nhóm báo đã phỏng vấn hơn 20 người. Chờ ghi chép đã ẩn danh để đối chiếu tình huống và gắn nguồn cho từng ca. [Data Card](../data/DATA_CARD.md#nguồn-dựng-các-tình-huống-mô-phỏng) ghi cách dựng bốn nguồn mô phỏng SIM-01–SIM-04. Các nguồn này thuộc `tu_viet`.
+- `eval/benchmark.csv`: 20 câu (thuong 4 · kho 14 · tu_choi 2, trong đó 2 câu tấn công). Giữ nguyên B01–B10 của CP2. B11–B20 mở rộng phần lời dặn, thiếu thành phần, phí ship theo quán, quán hết món và quán ngoài menu.
+- Nguồn: `nguoi_dung` 9 · `data_that` 0 · `tu_viet` 11 · `sinh_seed` 0. B11–B19 dẫn về Q4/Q8 trong [log khảo sát nhóm cung cấp](../evidence/survey/results.csv). Giá, menu và chat được dựng để chạy thử. Tỷ lệ ca dẫn về phản hồi trong file là 9/20 (45%). Ngưỡng số người tham gia khảo sát được kiểm riêng trong [hồ sơ bằng chứng](../evidence/summary.md).
+- Đọc chuẩn đạt từ `spec.md` §7 và `eval/metric_spec.yaml`. Tiêu chí từng ca B11–B20 ghi trong CSV. Với cả 20 ca, ngưỡng tổng 90% tương ứng ít nhất 18/20. Giữ bộ ID CP2 ghi trong các metric để tính lại đúng các tiêu chí đã chốt.
 - Độ phủ theo 4 chiều: trạng thái hồ sơ (chưa xác nhận, đã xác nhận, yêu cầu đổi ràng buộc đã khóa), ràng buộc ăn uống (không có, dị ứng cụ thể, dị ứng mơ hồ, ăn chay), ngân sách (còn dư, vừa đủ, thiếu sau khi cộng ship) và hành vi mong đợi (lập giỏ, hỏi lại, báo bất khả thi, từ chối).
 - Liên kết `spec.md` §5: lớp 1 nguồn sự thật (B02, B06), lớp 2 mơ hồ (B07–B08), lớp 3 thẩm quyền (B09–B10), lớp 4 rủi ro lĩnh vực (B04–B06, B09–B10).
 - Khi có nguồn thật, ghi `nguoi_dung: <mã phỏng vấn, mục hoặc dòng>` hoặc `data_that: <mã nguồn, dòng hoặc mục>`. Nguồn phải chứa tình huống hoặc chi tiết chính dùng để dựng ca. Có thể ẩn danh và giữ giá, phí ship theo fixture CP2 nếu ghi rõ phần mô phỏng. Nguồn công thức tham khảo trong menu không xác nhận chat hay giá bán thật của các ca hiện tại.
