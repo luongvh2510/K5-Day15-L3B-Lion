@@ -35,20 +35,9 @@ Data BTC cấp đã dùng (nếu có — không commit nguyên file): không dù
 - Số lần / tháng của từng kiểu người dùng (dùng cho persona ở §8): __
 
 ## §3. Giải pháp tương tự *(guide 2.1)*
-
-> Ghi theo `docs/ba/00-tong-quan-PRD.md` mục 2. **Chưa có ai trong nhóm tự thử các sản phẩm này** — mỗi người cần thử 1 app (10 phút), ghi tên app + 1–2 dòng + ảnh chụp đã che thông tin, rồi cập nhật dòng tương ứng.
-
-- **GrabFood đơn nhóm (group order):** đáng học — một người tạo đơn và gửi link, mọi người vào chọn, có chia tiền theo món. Đáng né — mỗi người phải tự mở app và tự chọn, không xử lý trường hợp mọi người chỉ nhắn trong chat rồi một người lo hết. Mình khác — nhận thẳng đoạn chat, rút ràng buộc và lập giỏ cho cả nhóm.
-- **ShopeeFood đơn nhóm:** đáng học — gom nhiều người vào một đơn. Đáng né — chỉ một quán mỗi đơn, đổi quán phải tạo đơn khác. Mình khác — báo thẳng thiếu bao nhiêu tiền và đề xuất đổi quán/nới quỹ.
-- **Form khảo sát hoặc bảng tính** (cách ezCater/Fooda khuyên cho đặt cơm văn phòng): đáng học — gom ràng buộc có cấu trúc. Đáng né — người điều phối vẫn phải tự gom và tự đọc. Mình khác — bỏ bước điền form, đọc từ chat có sẵn.
-- Người phụ trách §3 / bước 2.1: **Phan Trần Mạnh Cường** (gom 4 dòng dưới thành 3–4 dòng cuối). Mỗi người thử 1 app khác nhau (10 phút), ghi 1–2 dòng nhận xét **thực tế** + ảnh chụp đã che thông tin. *(Cột "Đã thử?" chưa có ai tick; chưa ghi nhận xét nào là đã kiểm.)*
-
-  | Người | App được giao thử | Đã thử? | Nhận xét thực tế (đáng học / đáng né) |
-  |---|---|---|---|
-  | Võ Hồng Lương | GrabFood — đơn nhóm (group order) | chưa | __ |
-  | Hồ Anh Tú | ShopeeFood — đơn nhóm | chưa | __ |
-  | Phan Trần Mạnh Cường | Splitwise hoặc app chia bill tương tự (chia tiền nhóm) | chưa | __ |
-  | Nguyễn Trung Dũng | Chatbot đặt món / trợ lý tổng quát (ChatGPT hoặc Claude): dán thử một đoạn chat nhóm và xem có rút đúng ràng buộc không | chưa | __ |
+- **GrabFood đơn nhóm:** đáng học — một người tạo đơn, gửi link, mọi người vào chọn món và chia tiền theo món. Đáng né — mỗi người phải tự mở app và tự chọn, không xử lý trường hợp mọi người chỉ nhắn trong chat rồi một người lo hết. Mình khác — nhận thẳng đoạn chat, rút ràng buộc và lập giỏ cho cả nhóm.
+- **ShopeeFood đơn nhóm:** đáng học — gom nhiều người vào một đơn. Đáng né — mỗi đơn chỉ một quán, đổi quán phải tạo đơn khác. Mình khác — báo thẳng thiếu bao nhiêu tiền và đề xuất đổi quán hoặc nới quỹ.
+- **Form khảo sát / bảng tính** (cách ezCater, Fooda khuyên cho đặt cơm văn phòng): đáng học — gom ràng buộc có cấu trúc. Đáng né — người điều phối vẫn phải tự gom và tự đọc. Mình khác — bỏ bước điền form, đọc thẳng từ chat có sẵn.
 
 ## §4. Thiết kế *(guide 2.2, 3.2)*
 
