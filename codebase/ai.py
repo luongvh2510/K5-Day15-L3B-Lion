@@ -14,10 +14,12 @@ Chế độ giả (mặc định khi .env chưa có MODEL_PROVIDER, hoặc MODEL
     trả một câu giả cố định, model "fake", token 0 — để luồng chạy hết từ trước CP2 (guide bước 3.2).
     Lượt `run.py eval` / `run.py simulate` chạy bằng model giả KHÔNG được tính.
 
-Nối model thật: điền .env (chép từ .env.example), rồi viết nhánh gọi API ở dưới theo docs/connect-model.md
-(có ví dụ OpenAI, Claude, model chạy trên máy, và cách nối nhà cung cấp khác). Không dán API key vào file này.
+Nối model thật: điền .env (chép từ .env.example). Hỗ trợ OpenAI, Anthropic và Ollama.
+Không dán API key vào file này.
 """
 import os
+import json
+from urllib import request
 
 from tracing import model_call
 
@@ -43,14 +45,39 @@ MODEL_NAME = (os.environ.get("MODEL_NAME") or "").strip()
 API_KEY = (os.environ.get("API_KEY") or "").strip()
 
 
+def _post_json(url, headers, payload, timeout=60):
+    req = request.Request(url, data=json.dumps(payload).encode("utf-8"),
+                          headers={"Content-Type": "application/json", **headers}, method="POST")
+    with request.urlopen(req, timeout=timeout) as response:
+        return json.load(response)
+
+
 @model_call
 def call_model(system: str, user: str) -> dict:
     if MODEL_PROVIDER == "fake":
         last = (user.strip().splitlines() or [""])[-1]
         return {"text": "[câu trả lời giả — chưa nối model] " + last[:60], "model": "fake", "tokens_in": 0, "tokens_out": 0}
-
-    # NHÓM VIẾT: gọi model thật ở đây (theo MODEL_PROVIDER, MODEL_NAME, API_KEY) rồi trả đúng 4 khoá.
-    # Ví dụ chép được cho từng nhà cung cấp: docs/connect-model.md mục 2.
-    raise NotImplementedError(
-        "chưa viết phần gọi model thật cho MODEL_PROVIDER=%s trong codebase/ai.py — xem docs/connect-model.md"
-        % MODEL_PROVIDER)
+    if not MODEL_NAME or (MODEL_PROVIDER in ("openai", "anthropic") and not API_KEY):
+        raise RuntimeError("Thiếu MODEL_NAME hoặc API_KEY trong cấu hình model.")
+    messages = ([{"role": "system", "content": system}] if system else []) + [{"role": "user", "content": user}]
+    if MODEL_PROVIDER == "openai":
+        data = _post_json("https://api.openai.com/v1/chat/completions", {"Authorization": "Bearer " + API_KEY},
+                          {"model": MODEL_NAME, "messages": messages})
+        text = data["choices"][0]["message"]["content"]
+        tokens_in, tokens_out = data["usage"]["prompt_tokens"], data["usage"]["completion_tokens"]
+    elif MODEL_PROVIDER == "anthropic":
+        data = _post_json("https://api.anthropic.com/v1/messages", {"x-api-key": API_KEY, "anthropic-version": "2023-06-01"},
+                          {"model": MODEL_NAME, "max_tokens": 4096, "system": system or "",
+                           "messages": [{"role": "user", "content": user}]})
+        text = "".join(block.get("text", "") for block in data["content"] if block.get("type") == "text")
+        tokens_in, tokens_out = data["usage"]["input_tokens"], data["usage"]["output_tokens"]
+    elif MODEL_PROVIDER == "ollama":
+        data = _post_json("http://localhost:11434/api/chat", {},
+                          {"model": MODEL_NAME, "messages": messages, "stream": False}, timeout=300)
+        text = data["message"]["content"]
+        tokens_in, tokens_out = data["prompt_eval_count"], data["eval_count"]
+    else:
+        raise RuntimeError("MODEL_PROVIDER chưa được hỗ trợ: %s" % MODEL_PROVIDER)
+    if not isinstance(text, str):
+        raise ValueError("Model không trả văn bản.")
+    return {"text": text, "model": MODEL_NAME, "tokens_in": int(tokens_in), "tokens_out": int(tokens_out)}
