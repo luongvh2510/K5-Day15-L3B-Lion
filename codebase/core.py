@@ -76,7 +76,12 @@ def can_confirm(profile):
 # ---------- phiên ----------
 
 def _msg(session, kind, text, role="assistant"):
-    session["messages"].append({"role": role, "kind": kind, "text": text})
+    session["messages"].append({"role": role, "kind": kind, "text": text, "turn": session.get("turn", 0)})
+
+
+def _new_turn(session):
+    """Mỗi thao tác của người dùng (send/confirm/finalize) là một lượt; render chỉ hiện tin của lượt hiện tại."""
+    session["turn"] = session.get("turn", 0) + 1
 
 
 def get(session_id):
@@ -103,6 +108,7 @@ def start(chat_text, shipping=None, candidates=None, budget=None):
 
 def confirm(session):
     """Khoá ràng buộc và lập giỏ; chỉ khi can_confirm."""
+    _new_turn(session)
     if session["status"] != "PROFILE_DRAFT":
         return session
     if not can_confirm(session["profile"]):
@@ -113,6 +119,7 @@ def confirm(session):
 
 
 def finalize(session):
+    _new_turn(session)
     if session["status"] == "CART_VALID":
         session["status"] = "FINALIZED"
     return session
@@ -148,6 +155,7 @@ def _answer_question(session, text):
 
 def send(session, text):
     """Một lượt người đặt nhắn."""
+    _new_turn(session)
     _msg(session, "TEXT", text, role="user")
     if session["status"] == "PROFILE_DRAFT":
         return _answer_question(session, text)
@@ -329,7 +337,8 @@ def render(session):
         return _render_draft(profile)
     out = []
     last = session["messages"][-1] if session["messages"] else None
-    if last and last["role"] == "assistant" and last["kind"] in ("REFUSAL", "INFO"):
+    if (last and last["role"] == "assistant" and last["kind"] in ("REFUSAL", "INFO")
+            and last.get("turn", 0) == session.get("turn", 0)):
         out.append(last["text"])
     store = _store_name(session["store_id"])
     if session["status"] == "CART_INFEASIBLE":

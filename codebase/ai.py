@@ -17,7 +17,10 @@ Chế độ giả (mặc định khi .env chưa có MODEL_PROVIDER, hoặc MODEL
 Nối model thật: điền .env (chép từ .env.example), rồi viết nhánh gọi API ở dưới theo docs/connect-model.md
 (có ví dụ OpenAI, Claude, model chạy trên máy, và cách nối nhà cung cấp khác). Không dán API key vào file này.
 """
+import json
 import os
+import urllib.error
+import urllib.request
 
 from tracing import model_call
 
@@ -49,8 +52,39 @@ def call_model(system: str, user: str) -> dict:
         last = (user.strip().splitlines() or [""])[-1]
         return {"text": "[câu trả lời giả — chưa nối model] " + last[:60], "model": "fake", "tokens_in": 0, "tokens_out": 0}
 
-    # NHÓM VIẾT: gọi model thật ở đây (theo MODEL_PROVIDER, MODEL_NAME, API_KEY) rồi trả đúng 4 khoá.
-    # Ví dụ chép được cho từng nhà cung cấp: docs/connect-model.md mục 2.
+    if MODEL_PROVIDER == "openrouter":
+        if not (MODEL_NAME and API_KEY):
+            raise NotImplementedError("điền MODEL_NAME và API_KEY trong .env (OpenRouter)")
+        r = call_openrouter(system, user)
+        return {"text": r["text"], "model": MODEL_NAME,
+                "tokens_in": int(r["tokens_in"]), "tokens_out": int(r["tokens_out"])}
     raise NotImplementedError(
         "chưa viết phần gọi model thật cho MODEL_PROVIDER=%s trong codebase/ai.py — xem docs/connect-model.md"
         % MODEL_PROVIDER)
+
+
+URL_OPENROUTER = "https://openrouter.ai/api/v1/chat/completions"
+
+
+def post_json(url, headers, body, timeout=90):
+    """Gửi POST JSON, trả về JSON phản hồi. Chỉ dùng thư viện chuẩn (urllib)."""
+    req = urllib.request.Request(
+        url, data=json.dumps(body).encode("utf-8"), method="POST",
+        headers=dict({"Content-Type": "application/json"}, **headers))
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        raise RuntimeError("HTTP %d: %s" % (e.code, e.read().decode("utf-8", "replace")[:300]))
+
+
+def call_openrouter(system, user):
+    """OpenRouter dùng định dạng OpenAI chat completions; token lấy từ trường usage."""
+    messages = ([{"role": "system", "content": system}] if system else []) + [{"role": "user", "content": user}]
+    data = post_json(URL_OPENROUTER, {"Authorization": "Bearer " + API_KEY, "X-Title": "K5-D2-Lion"},
+                     {"model": MODEL_NAME, "messages": messages, "temperature": 0})
+    if "error" in data:
+        raise RuntimeError("OpenRouter: %s" % data["error"])
+    usage = data.get("usage") or {}
+    return {"text": data["choices"][0]["message"]["content"] or "",
+            "tokens_in": usage.get("prompt_tokens", 0), "tokens_out": usage.get("completion_tokens", 0)}

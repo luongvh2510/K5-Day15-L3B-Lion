@@ -118,3 +118,12 @@ class TestReviewFixes(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestRenderTurn(unittest.TestCase):
+    def test_render_hides_info_from_previous_turn(self):
+        s = session_with([member(n) for n in FIVE], candidates=["store_01"])
+        s["messages"].append({"role": "assistant", "kind": "INFO", "text": "Đã ghi nhận lượt trước", "turn": s.get("turn", 0)})
+        with mock.patch("core.llm_steps.pick_items", side_effect=first_pick):
+            s = core.confirm(s)
+        self.assertNotIn("Đã ghi nhận lượt trước", core.render(s))
