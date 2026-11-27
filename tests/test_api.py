@@ -126,6 +126,17 @@ class TestAPI(unittest.TestCase):
             status, result = self.request('POST', '/sessions', {'chat_text': 'An: 300k'})
         self.assertEqual((status, result['error']['code']), (502, 'AI_UNAVAILABLE'))
 
+    def test_confirm_with_open_question_returns_409_and_keeps_state(self):
+        profile = {'budget': 300000, 'members': [{'name': 'An', 'vegetarian': True, 'allergens': {}, 'preferences': [], 'quotes': []}],
+                   'questions': [{'id': 'q1', 'member': 'An', 'text': 'An ăn chay mà xin cơm gà?', 'status': 'OPEN'}]}
+        with mock.patch.object(api.core.llm_steps, 'extract_profile', return_value=profile):
+            _, draft = self.request('POST', '/sessions', {'chat_text': 'An: chay, cơm gà 300k'})
+        path = '/sessions/' + draft['session_id']
+        self.assertFalse(draft['can_confirm'])
+        status, error = self.request('POST', path + '/confirm')
+        self.assertEqual((status, error['error']['code']), (409, 'INVALID_STATE'))
+        self.assertEqual(self.request('GET', path)[1], draft)
+
     def test_unexpected_error_returns_json_500(self):
         with mock.patch.object(api.core.llm_steps, 'extract_profile', side_effect=KeyError('boom')):
             status, result = self.request('POST', '/sessions', {'chat_text': 'An: 300k'})

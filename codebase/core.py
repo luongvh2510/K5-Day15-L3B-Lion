@@ -152,8 +152,15 @@ def change_restaurant(session, store_id=None):
         raise ValueError("Quán không tồn tại")
     if session["store_id"] and session["store_id"] not in session["tried"]:
         session["tried"].append(session["store_id"])
+    old = {key: session[key] for key in ("status", "store_id", "cart", "infeasible")}
     session["store_id"] = store_id
-    return _plan_cart(session)
+    _plan_cart(session)
+    if store_id is None and old["status"] == "CART_VALID" and session["status"] != "CART_VALID":
+        # Agent tự đổi quán mà không quán nào khác lập được giỏ: không bỏ giỏ hợp lệ đang có.
+        session.update(old)
+        _msg(session, "INFO", "Không còn quán nào khác lập được giỏ an toàn trong quỹ; giữ giỏ ở %s."
+             % _store_name(old["store_id"]))
+    return session
 
 
 def finalize(session):
@@ -225,10 +232,7 @@ def send(session, text):
         session["profile"]["budget"] = route["amount"]
         return _plan_cart(session)
     if intent == "CHANGE_RESTAURANT":
-        if session["store_id"] and session["store_id"] not in session["tried"]:
-            session["tried"].append(session["store_id"])
-        session["store_id"] = None
-        return _plan_cart(session)
+        return change_restaurant(session)
     if intent == "CHANGE_ITEM":
         target = _find(profile, who)
         if target is None:

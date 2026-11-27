@@ -190,6 +190,8 @@ def dispatch(method, path, body):
                 if action == 'messages':
                     core.send(session, text_field(body, 'text'))
                 elif action == 'confirm':
+                    if not core.can_confirm(session['profile']):
+                        fail(409, 'INVALID_STATE', 'Cần trả lời hết câu hỏi và có quỹ chung trước khi xác nhận.')
                     core.confirm(session)
                 elif action == 'reopen':
                     core.reopen(session)

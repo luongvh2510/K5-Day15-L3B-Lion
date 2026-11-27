@@ -159,7 +159,9 @@ Validation {
 
 Action =
   | { type: "SET_BUDGET", budget: number }
-  | { type: "CHANGE_RESTAURANT", restaurant_id?: string }   // không gửi restaurant_id → agent tự chọn quán khác
+  | { type: "CHANGE_RESTAURANT", restaurant_id?: string }   // không gửi restaurant_id → agent tự chọn quán khác;
+  //   nếu đang CART_VALID mà không quán nào khác lập được giỏ thì GIỮ giỏ cũ và thêm tin INFO "…giữ giỏ ở {quán}".
+  //   Có restaurant_id → luôn lập giỏ ở quán đó (có thể ra CART_INFEASIBLE để người đặt thấy lý do).
 
 Infeasible {
   kind: "NO_SAFE_ITEM" | "OVER_BUDGET"
