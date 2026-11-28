@@ -7,7 +7,7 @@
 >
 > | Mục | Tình trạng | Dùng gì thay |
 > |---|---|---|
-> | 1–2. Menu `r1`, `r2` (M01…, N01…) | **Bỏ.** Sản phẩm dùng dữ liệu thật | `data/dataset_mon_an_viet.json`: 10 quán `store_01…store_10`, 100 món `dish_001…dish_100`, không có món phụ/đồ uống, không có nhãn chay, ship cố định 15.000đ. Xem menu qua `GET /api/restaurants/{id}/menu` hoặc [`mocks/menu_store_08.json`](mocks/menu_store_08.json) |
+> | 1–2. Menu `r1`, `r2` (M01…, N01…) | **Bỏ.** Sản phẩm dùng dữ liệu thật | `data/dataset_mon_an_viet.json`: 10 quán `store_01…store_10`, 100 món `dish_001…dish_100`, không có món phụ/đồ uống, không có nhãn chay, phí ship tính theo `distance_km` (15.000đ cho 2 km đầu, mỗi km tiếp theo (làm tròn lên) +5.000đ). Xem menu qua `GET /api/restaurants/{id}/menu` hoặc [`mocks/menu_store_08.json`](mocks/menu_store_08.json) |
 > | 3. Đoạn chat mẫu | **Đổi định dạng** | Tên một dòng, tin nhắn dòng sau (CHAT-01 đã viết lại bên dưới). Quỹ nằm trong chat, không chọn quán |
 > | 4. Bộ ca TC-01…TC-18 | **Không còn là bộ chấm chính thức** (id món, số tiền theo menu cũ) | Bộ chấm chính thức là [`eval/benchmark.csv`](../../eval/benchmark.csv) B01–B10, **đã khoá sau CP2**, chạy bằng `python run.py eval`. TC-xx chỉ còn để tham khảo ý tưởng tình huống |
 > | 5. Cách chấm | Đổi | `python run.py eval` → `eval/run-N.csv`, `python run.py score` theo `eval/metric_spec.yaml` |

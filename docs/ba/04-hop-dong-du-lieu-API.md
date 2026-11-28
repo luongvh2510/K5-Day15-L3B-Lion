@@ -29,7 +29,7 @@ Restaurant {
   menu_type: string         // "xoi" | "pho" | "bun" | "com" | "mi" | "mien" | "hu_tieu" | "banh_canh" | "banh_mi" | "chao"
   summary: string           // mô tả ngắn của quán
   distance_km: number       // 0.9
-  shipping_fee: number      // 15000 — dữ liệu không có phí ship, POC dùng cố định 15.000đ cho mọi quán
+  shipping_fee: number      // 15000–25000 — mô phỏng theo distance_km: 15.000đ cho 2 km đầu, mỗi km tiếp theo (làm tròn lên) +5.000đ
 }
 
 MenuItem {                  // mọi món trong dữ liệu đều là món chính (1 suất/người), không có món phụ/đồ uống
@@ -323,7 +323,7 @@ def dish_exclusion(member: dict, item: dict) -> str: ...        # "" nếu an to
 def safe_mains(member, menu) -> tuple[list[str], dict[str, str]]: ...   # (id an toàn, {id: lý do loại})
 def feasibility(members, options, menu, shipping) -> tuple[list[str], int | None]: ...  # (người không có món, chi phí tối thiểu)
 def validate_cart(members, selected, menu, budget, shipping) -> list[str]: ...          # [] = hợp lệ (BR-02..07)
-def shipping_fee(store_id) -> int: ...                           # 15000
+def shipping_fee(store_id) -> int: ...                           # theo distance_km, 15000–25000
 def store_summary(store_id, members, budget, shipping) -> dict: ...  # {id, name, safe_counts, min_total}
 
 # core.py — luồng phiên; mọi hàm nhận và trả dict session
@@ -339,4 +339,5 @@ rồi kiểm lại (`built_by="FALLBACK"`).
 | Ngày | Ai | Thay đổi |
 |---|---|---|
 | 27/11/2026 | BA | Bản đầu |
+| 28/11/2026 | AI (Lương) | Phí ship theo `distance_km`: 15.000đ cho 2 km đầu, mỗi km tiếp theo (làm tròn lên) +5.000đ. Thay cho mức cố định 15.000đ |
 | 28/11/2026 | AI (Lương) | Viết lại theo API thật. **Đầu vào:** `POST /sessions` chỉ còn `{chat_text}` (bỏ `budget`, `restaurant_id`, `include_host`); quỹ đọc từ chat, quán do agent chọn khi xác nhận (`restaurant`=`null` ở Phase 1). **Menu:** id `store_xx`/`dish_xxx` theo dữ liệu thật; mọi món là món chính (bỏ `SIDE`/`DRINK`); thêm `ingredients`, `allergen_sources`, `animal_ingredients`; `vegetarian` do code suy từ nguyên liệu; ship cố định 15.000đ. **Dị ứng:** 10 mã theo dữ liệu (thêm `CRUSTACEAN`, `MOLLUSC`, `CELERY`; bỏ `TREE_NUT`, `SHELLFISH`, `OTHER`). **Hồ sơ:** thêm `Member.quotes`; `chat_lines`, `flags`, `source.line/quote`, `question.options`, `message.question_id` chưa có. **Hội thoại:** thêm `Message.turn`; `/messages` chỉ nhận `{text}`. **Hành động:** `CHANGE_RESTAURANT` không cần `restaurant_id`; option id `budget`/`restaurant`. **Lỗi:** thêm `500 INTERNAL`, bỏ `HARD_CONSTRAINT_LOCKED`. **Debug:** `validate-cart` nhận `{store_id, members, selected, budget, shipping}` trả `string[]`. Mock chuyển sang thư mục `mocks/` sinh từ API thật |

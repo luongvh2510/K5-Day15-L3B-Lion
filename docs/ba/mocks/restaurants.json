@@ -29,7 +29,7 @@
     "menu_type": "hu_tieu",
     "summary": "Hủ tiếu nước và hủ tiếu khô, có nhân tôm thịt, cá, mực, sườn và bò kho. Hủ tiếu sa tế có vị cay.",
     "distance_km": 2.2,
-    "shipping_fee": 15000
+    "shipping_fee": 20000
   },
   {
     "id": "store_05",
@@ -37,7 +37,7 @@
     "menu_type": "mi",
     "summary": "Mì trứng kiểu Hoa, gồm mì nước với hoành thánh, xá xíu, vịt tiềm và các đĩa mì xào.",
     "distance_km": 2.5,
-    "shipping_fee": 15000
+    "shipping_fee": 20000
   },
   {
     "id": "store_06",
@@ -69,7 +69,7 @@
     "menu_type": "mien",
     "summary": "Miến dong nước, trộn và xào, có miến gà, ngan, lươn, cua và miến xào chay.",
     "distance_km": 2.8,
-    "shipping_fee": 15000
+    "shipping_fee": 20000
   },
   {
     "id": "store_10",
@@ -77,6 +77,6 @@
     "menu_type": "banh_canh",
     "summary": "Bánh canh sợi gạo hoặc bột lọc, gồm các tô giò heo, cá lóc, chả cá, cua, ghẹ và tôm nước cốt dừa.",
     "distance_km": 3.1,
-    "shipping_fee": 15000
+    "shipping_fee": 25000
   }
 ]

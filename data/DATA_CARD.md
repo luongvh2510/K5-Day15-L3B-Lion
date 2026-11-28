@@ -14,7 +14,7 @@
 | Số bản ghi | 100 món (mỗi món một suất), 10 quán, 174 nguyên liệu, 13 nhóm nguyên liệu, 10 loại nhãn dị ứng và 97 mục tham khảo. Đã kiểm ID không trùng trong từng danh mục và các tham chiếu món → quán, nguyên liệu, nguồn đều tồn tại. |
 | Phiên bản | Snapshot CP2. SHA-256: `3d63e16b7145051bd01988914802c7c664c20cfebd0e94b8dd45b64c75685d2d`. |
 | Nhãn | `synthetic`. Tên quán, giá, khoảng cách và URL ảnh là mô phỏng. Chat và phí ship trong benchmark do nhóm tự viết. |
-| Giới hạn | File không có trường nhãn chay, tồn món, phí ship hay xác minh đầy đủ thành phần. Không có dữ liệu nhiễm chéo trong bếp. Mảng nhãn rỗng chỉ có nghĩa là chưa ghi nhận nhãn trong bộ dữ liệu. |
+| Giới hạn | File không có trường nhãn chay, tồn món, phí ship hay xác minh đầy đủ thành phần. Khi đầu vào không ghi phí ship, code suy phí từ `distance_km`: 15.000đ cho 2 km đầu, mỗi km tiếp theo (làm tròn lên) +5.000đ (mô phỏng). Không có dữ liệu nhiễm chéo trong bếp. Mảng nhãn rỗng chỉ có nghĩa là chưa ghi nhận nhãn trong bộ dữ liệu. |
 
 **Cách tạo và phạm vi kiểm:** Metadata mô tả cách mô hình hóa món theo công thức demo; file chưa ghi prompt/script, seed, người kiểm hoặc số món đã kiểm tay khi tạo. Các ca CP2 được soạn theo quy tắc nghiệp vụ và tra giá, thành phần trong snapshot. Nhãn nguồn của các ca này là `tu_viet`.
 
