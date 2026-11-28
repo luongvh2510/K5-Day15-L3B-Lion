@@ -3,7 +3,7 @@
 ## 1. Nguồn và mẫu số
 
 - [Khảo sát Q1–Q8](survey/questions.md) và [log theo từng người](survey/results.csv) ghi **23 mã duy nhất**. **20/23** trả lời Q1 “Có”, gồm PH21–PH23 mới bổ sung. PH04, PH09 và PH17 không qua sàng lọc. Bản Excel trong repo đã ẩn danh, chỉ giữ mã PH và Q1–Q8.
-- **Khảo sát — nguồn đạt ngưỡng:** Cường xác nhận cả **20 người qua Q1 đều ở ngoài nhóm Lion**. Cột `outside_lion` trong [log khảo sát](survey/results.csv) ghi xác nhận theo mã PH. Xác nhận này do Cường đối chiếu sau khảo sát; danh sách người nhận gốc giữ trong nhóm, không đưa vào repo vì có danh tính. Kênh tuyển mẫu và thời gian mở khảo sát chưa được ghi nhận. Mẫu này mô tả những người trong file.
+- **Khảo sát — nguồn đạt ngưỡng:** Cường xác nhận cả **20 người qua Q1 đều ở ngoài nhóm Lion**. Cột `outside_lion` trong [log khảo sát](survey/results.csv) ghi xác nhận theo mã PH. Xác nhận dựa trên đối chiếu của Cường sau khảo sát; repo chưa có tài liệu đối chiếu (danh sách người nhận có danh tính nên không đưa lên). Kênh tuyển mẫu và thời gian mở khảo sát chưa được ghi nhận. Mẫu này mô tả những người trong file.
 - **Phỏng vấn — nguồn đạt ngưỡng:** [P1](interviews/P1.md), [P2](interviews/P2.md), [P3](interviews/P3.md), **3 người ngoài nhóm**, cả 3 đều đặt đồ ăn hộ nhóm 4–6 người trong 1 tháng qua (sinh viên ở trọ, nhân viên kế toán văn phòng, thiết kế đồ họa tự do). Phỏng vấn tối 27/11 qua tin nhắn (P1, P3) và điện thoại (P2), hỏi về lần đặt gần nhất. Người hỏi và ghi: Dũng. Mỗi người một file ghi chép theo mẫu guide 1.2.
 - Hai nguồn đếm riêng, không cộng chung. Phỏng vấn có n = 3 nên ghi x/3, không ghi %.
 
