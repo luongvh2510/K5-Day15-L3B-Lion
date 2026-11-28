@@ -231,10 +231,19 @@ flowchart TB
 | Bổ sung hồ sơ CP2 | Ghi mã nguồn mô phỏng SIM-01–SIM-04 và kết quả hai agent chấm độc lập. | B02, B04, B05, B07 có nguồn dựng ca trong Data Card. Kết quả chấm 5 output mô phỏng nằm trong `eval/README.md`. |
 | CP3 | Trích log khảo sát, điền bằng chứng và impact, mở rộng benchmark lên 20 ca. | 17/20 qua Q1. B11–B19 dẫn tới ghi chép Q4/Q8. Giữ nguyên B01–B10, ngưỡng và metric CP2. |
 | CP3 · cập nhật khảo sát | Thêm PH21–PH23, tính lại bằng chứng và impact, xuất bản Excel đã ẩn danh. | 20/23 qua Q1. Xem `evidence/summary.md`. |
+| 27/11 23:01 | Thay khung mô phỏng CP2 bằng agent 2 giai đoạn: `core.py`, `llm_steps.py`, prompt trong `prompts/`, công cụ đọc theo dữ liệu quán, kèm test (`f9b9e90`). | CP3 yêu cầu AI thật. Luồng giữ đúng thiết kế §4: code giữ luồng và bước kiểm giỏ, model chỉ đọc chat, chọn quán, chọn món. |
+| 28/11 01:07 | Nối model thật `deepseek/deepseek-v4.1-flash` qua OpenRouter (`381aa39`). Merge backend API và lưu phiên SQLite của Dũng (PR #1, `053458c`). | Chạy eval bằng model thật và cho giao diện gọi API. |
+| 28/11 07:55 | Phí ship tính theo khoảng cách quán: 15.000đ cho 2 km đầu, thêm 5.000đ mỗi km tiếp theo (`929e979`). | Phí ship tăng ở quán xa là pain có trong khảo sát (PH06 Q8, phí ship 42.000đ). Thay cho mức ship cố định. |
+| 28/11 08:00 | Sửa đề B11–B19 trước lượt 1 (`53205d7`). **B13:** đổi món của An sang bún bò Huế dish_011 có mắm ruốc, và đổi `expected` cùng tiêu chí theo. **B14:** đổi quán ứng viên sang store_10 và store_01, phí ship tính theo khoảng cách, và đổi `expected` cùng tiêu chí theo. **B11, B12, B16–B19:** chỉ tách lời dặn khỏi dòng chat và ghi rõ trường, ý ca giữ nguyên. Không đụng B01–B10, B20, ngưỡng hay metric. | Đề cũ của B13 ghi "nước chấm chưa xác minh" ngay trong đề, còn dữ liệu quán không có trường này. Đề cũ của B14 dùng phí ship cố định, không khớp công thức mới. Sửa trước khi chạy lượt 1 (08:26), nên cả 3 lượt chạy trên cùng một bộ câu thử. Không sửa để khớp output. |
+| 28/11 09:00 | Bản sửa lượt 1 → 2 (`21c1358`): người nhắn "gì cũng được" vẫn là thành viên; một người gửi hai món khác nhau hoặc chỉ gửi ảnh thì hỏi lại. Thêm 3 test. | Nhóm lỗi trích xuất chat sai ở lượt 1 (B14, B16, B17). Lượt 2 đạt 15/20. Xem `eval/report.md` §3. |
+| 28/11 09:12 | Bản sửa lượt 2 → 3 (`24915ef`): chọn quán ưu tiên sở thích, câu báo nêu ràng buộc và mã quán không có trong dữ liệu, hồ sơ nháp kèm câu chat gốc. Thêm 7 test. | Câu trượt ở lượt 2 (B01, B06, B12, B20). Lượt 3 đạt 18/20. Xem `eval/report.md` §5. |
+| 28/11 09:27 | Thêm phỏng vấn P1–P3 làm nguồn đạt ngưỡng, so sánh với khảo sát, cập nhật §1 và canvas (`0e2db53`). Bỏ tên người được phỏng vấn, chỉ giữ mã P và vai (`c8bdaac`). | Có thêm nguồn đạt ngưỡng ngoài khảo sát. Ẩn danh theo luật không đưa dữ liệu cá nhân thật vào repo. |
+| 28/11 12:22 | Cường xác nhận cả 20 người qua Q1 đều ở ngoài nhóm Lion, ghi vào cột `outside_lion` (`4f5e2c3`). | Để khảo sát đạt ngưỡng nguồn ngoài nhóm. Danh sách đối chiếu có danh tính nên không đưa lên repo (`evidence/summary.md` §1). |
+| 28/11 13:12 | Merge frontend màn A–E của Tú (`ff70b05`): xem menu, chọn quán, đổi món và đổi quỹ qua chat, trừ quỹ khi chốt. | Phục vụ demo CP4. Kiểm lại B07, B09, B10 bằng model thật sau khi merge, kết quả không đổi. |
 | CP4 | Điền chi phí, rủi ro và khai báo AI. | Mô phỏng của Dũng dùng tỷ lệ lượt 2. Hồ sơ rủi ro đối chiếu B01, B04 và báo cáo ba lượt đánh giá. |
 
 **Sau CP4 (đến 23:59 Thứ Bảy 28/11)** (sửa theo góp ý — không sửa chuẩn "đạt", câu thử, số bằng chứng, kết quả các lượt đã chạy)
 
 | Thời điểm | Đổi gì | Vì sao |
 |---|---|---|
-| 28/11 20:00 | Điền quy ước nhóm trong `AGENTS.md`, thêm reflection của Lương. | Hoàn thiện hồ sơ trước hạn chót; không đổi code, chuẩn "đạt", câu thử hay số liệu. |
+| 28/11 20:00 | Điền quy ước nhóm trong `AGENTS.md`, thêm reflection của Lương, bổ sung các dòng còn thiếu vào changelog CP2 → CP4. | Hoàn thiện hồ sơ trước hạn chót; không đổi code, chuẩn "đạt", câu thử hay số liệu. |
