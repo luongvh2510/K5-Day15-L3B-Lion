@@ -20,7 +20,7 @@ Data BTC cấp đã dùng (nếu có — không commit nguyên file): không dù
 - Việc họ cố làm xong (`động từ + đối tượng + bối cảnh`, không có chữ AI): đặt bữa ăn cho cả nhóm từ một quán, trong giới hạn quỹ chung, sao cho ai cũng ăn được món của mình.
 - Hôm nay họ giải bằng gì, hỏng ở đâu, vì sao chưa bỏ: 10/20 nhận lựa chọn món chủ yếu qua chat nhóm, 5/20 hỏi trực tiếp, 3/20 dùng giỏ chung trên app, 1/20 nhận tin nhắn riêng và 1/20 dùng kênh khác. Một số người dùng mẫu tin hoặc quán quen để chốt nhanh, như PH07 và PH22.
 - Pain (KHÔNG chữ AI): người cầm quỹ đặt hộ cả nhóm — phải đọc lại đoạn chat lộn xộn và dò từng món trong menu — vướng ở chỗ dễ sót lời dặn ăn chay/dị ứng, món không ghi thành phần, và phí ship làm vượt quỹ — hậu quả: mất thời gian làm lại, và nguy cơ đặt nhầm món gây dị ứng.
-- Bằng chứng — số chính + kết luận (chi tiết: `evidence/summary.md`): 20/23 người trả lời khảo sát có đặt hộ nhóm trong 30 ngày qua. Trong số đó, 13/20 phải sửa món, đổi quán hoặc không đặt được ở lần gần nhất và 6/20 báo sót lời dặn. Trung vị thời gian gom đến chốt là 14 phút (19 câu trả lời bằng số). Nguồn đạt ngưỡng là phỏng vấn 3 người ngoài nhóm (P1–P3): 3/3 gom món qua chat nhóm và phải hỏi lại, sửa giỏ hoặc đổi quán ở lần gần nhất; 2/3 có người ăn chay hoặc dị ứng. Khảo sát đủ 20 người qua Q1 nhưng chưa đạt ngưỡng riêng (chờ xác nhận điều kiện ngoài nhóm).
+- Bằng chứng (chi tiết: `evidence/summary.md`): Khảo sát đạt ngưỡng với 20/23 người qua Q1, cả 20 đều ở ngoài nhóm Lion theo xác nhận của Cường. Trong số đó, 13/20 phải sửa món, đổi quán hoặc không đặt được ở lần gần nhất và 6/20 báo sót lời dặn. Trung vị thời gian gom đến chốt là 14 phút (19 câu trả lời bằng số). Nguồn phỏng vấn cũng đạt ngưỡng với 3 người ngoài nhóm. Cả 3 gom món qua chat nhóm và phải hỏi lại, sửa giỏ hoặc đổi quán. Hai người kể nhóm có người ăn chay hoặc dị ứng.
 
 ## §2. Impact & quyết định chọn *(guide 1.3)*
 
@@ -204,19 +204,24 @@ flowchart TB
 - Kết quả: lượt 1 14/20 (70%; thuong 4/4 · kho 8/14 · tu_choi 2/2; 10 ca CP2 đạt 9/10) · lượt 2 15/20 (75%; thuong 3/4 · kho 10/14 · tu_choi 2/2; 10 ca CP2 đạt 8/10) · lượt 3 18/20 (90%; thuong 4/4 · kho 12/14 · tu_choi 2/2; 10 ca CP2 đạt 9/10) — run ID: run-1@20261128-082642 / run-2@20261128-090040 / run-3@20261128-091232 (cùng model deepseek/deepseek-v4.1-flash) → chi tiết `eval/report.md`, hồ sơ `eval/README.md`
 
 ## §8. Chi phí khi dùng thật *(guide 4.2)*
-- Persona + giá: `cost/personas.yaml` · lượt mô phỏng: `cost/simulate-__.csv` (__ phiên)
-- Chi phí / task thành công: __ (model __) · __ (model __)
-- Chi phí / tháng ở quy mô thật: thấp __ · cơ sở __ · cao __ → chi tiết `cost/cost-estimate.md`
-- So với impact / người / tháng (§2): đáng làm không, vì sao:
+- Persona và giá: [cost/personas.yaml](cost/personas.yaml), gồm ba nhóm tần suất đặt từ Q2 của 20 người qua sàng lọc. Dũng chạy [simulate-1.csv](cost/simulate-1.csv), run ID `simulate-1@20261128-103318`, **50 phiên**, seed 42, 0 phiên lỗi. Chi phí mỗi task thành công dùng tỷ lệ **15/20 (75%)** của lượt đánh giá 2 (`run-2@20261128-090040`).
+
+| Model | USD / task thành công | USD / tháng · 50 người | USD / tháng · 200 người | USD / tháng · 500 người |
+|---|---:|---:|---:|---:|
+| DeepSeek V4.1 Flash | 0,0029 | 0,5076 | 2,03 | 5,08 |
+| GPT-4.1 mini | 0,0038 | 0,6768 | 2,71 | 6,77 |
+
+- Token được đo với DeepSeek V4.1 Flash. Dòng GPT-4.1 mini áp đơn giá của model đó lên cùng số token để so chi phí. Các mức 50, 200 và 500 người hoạt động/tháng là *tự ước tính*. Bảng chỉ gồm chi phí API. Nguồn: [ước tính chi phí của Dũng](cost/cost-estimate.md).
+- **So với impact (§2):** Ở kịch bản 200 người, chi phí API ước tính là **0,0102 USD/người/tháng** với DeepSeek hoặc **0,0135 USD/người/tháng** nếu áp giá GPT-4.1 mini. Mẫu khảo sát cho thấy nhóm D2 dành khoảng **75,6 phút/người/30 ngày** cho toàn bộ quy trình đặt hộ (*tự ước tính*). Chi phí model đủ thấp để tiếp tục thử nghiệm. Cần đo số phút tiết kiệm được và tính thêm chi phí vận hành trước khi quyết định triển khai.
 
 ## §9. Rủi ro & an toàn
-- Dữ liệu: đã ẩn danh gì, không thu gì, không đưa gì vào model gói miễn phí: *(chờ — dự kiến: menu quán là dữ liệu giả lập; đoạn chat người dùng đưa vào đã bỏ tên thật)*
-- AI **không được** làm gì kể cả khi người dùng yêu cầu: bỏ hoặc tắt ràng buộc dị ứng/chay đã xác nhận; đưa vào giỏ món không rõ thành phần cho người dị ứng. *(theo `docs/ba/01`, BR-12)*
-- Ai có thể bị hại nếu AI sai, và nhóm chặn thế nào: người dị ứng trong nhóm — chặn bằng `validate_cart`, khoá một chiều, bước xác nhận hồ sơ, và dòng nhắc báo quán về dị ứng trong tin nhắn chốt (BR-19).
+- **Dữ liệu đã ẩn danh.** CSV và Excel khảo sát trong repo giữ mã PH và câu trả lời Q1–Q8, đã bỏ cột hồ sơ đáp viên gồm vai trò, tuổi và giới tính. Ghi chép phỏng vấn dùng mã P1–P3. **Ngoại lệ chưa xử lý:** ảnh `evidence/interviews/message-evidences.jpg` (bằng chứng phỏng vấn có thật) còn hiện tên hiển thị và ảnh đại diện Messenger của 2 người được phỏng vấn, chưa che. Ca đánh giá chuyển tình huống thành đoạn chat mẫu và dùng menu mô phỏng. Khi chạy thử, chỉ đưa đoạn chat đã bỏ thông tin nhận dạng vào model. Giữ bảng gốc và thông tin liên hệ trong phạm vi nhóm. Xem [hồ sơ khảo sát](evidence/survey/questions.md).
+- **Dị ứng và ăn chay.** Người có ràng buộc có thể nhận nhầm món nếu trích chat sai hoặc menu thiếu thành phần. Người đặt xác nhận hồ sơ trước khi lập giỏ, ràng buộc đã khóa được giữ khi có yêu cầu gỡ qua chat, và code lọc món rồi gọi `validate_cart` trước khi hiện giỏ hợp lệ. Code kiểm món ngoài menu, thành phần, ràng buộc ăn uống, số suất và tổng sau ship. Cả ba lượt đánh giá ghi nhận **0 giỏ vi phạm dị ứng, ăn chay hoặc vượt quỹ**. Menu mô phỏng chưa xác minh nhiễm chéo. Người đặt vẫn cần báo và xác nhận với quán.
+- **Đầu ra model dao động.** B01 trượt ở lượt 2 vì chọn quán cơm tấm dù nhóm muốn phở gà. B04 trượt ở lượt 3 vì model hỏi lại người đã xác nhận đồng ý đổi món. Cả hai lỗi ảnh hưởng trải nghiệm dù không tạo giỏ vi phạm. Mỗi ca chỉ chạy một lần trong mỗi lượt và có thay đổi code giữa các lượt, nên chưa đo được tần suất dao động của cùng một phiên bản. Lượt 3 đạt 18/20 nhưng metric ràng buộc ăn uống vẫn 5/6, nên chưa đạt trọn chuẩn. Xem [báo cáo ba lượt](eval/report.md).
 
 ## §10. Phân công & changelog
 - Phân công có tên (theo chặng, chia cặp — guide "Cách chia việc"): Võ Hồng Lương — AI chính, sơ đồ kiến trúc, `agent.py`, chuẩn "đạt" · Hồ Anh Tú — giao diện + frontend, đoạn chat mẫu cho bộ câu thử · Phan Trần Mạnh Cường — BA, bằng chứng, canvas, metric, spec §0–§3 và §5 · Nguyễn Trung Dũng — backend + phụ AI, dữ liệu quán mẫu, `tools.py`, `validate_cart`. Chi tiết: `docs/cp2-tasks.md`.
-- Dùng AI vào việc gì (2–3 dòng; chi tiết `docs/ai-usage.md`): __
+- **Dùng AI vào việc gì.** Codex hỗ trợ viết khung Python, rà câu hỏi khảo sát, trích và tính số từ phản hồi nhóm cung cấp, soạn benchmark và cập nhật tài liệu. Claude Code viết agent, prompt và các bản sửa lỗi lượt 1 → 3, đồng thời đề xuất điểm 1/0 cột `pass` theo tiêu chí đã chốt; Lương duyệt từng điểm trước khi commit. Xem [khai báo dùng AI](docs/ai-usage.md).
 - Nhật ký thay đổi — **mọi thay đổi sau CP2 19:30 Thứ Sáu 27/11 phải có dòng ở đây**:
 
 **CP2 → CP4** (vd thu hẹp lát cắt, hỏi thêm người dùng, lần cải tiến trước lượt 2)
@@ -226,6 +231,7 @@ flowchart TB
 | Bổ sung hồ sơ CP2 | Ghi mã nguồn mô phỏng SIM-01–SIM-04 và kết quả hai agent chấm độc lập. | B02, B04, B05, B07 có nguồn dựng ca trong Data Card. Kết quả chấm 5 output mô phỏng nằm trong `eval/README.md`. |
 | CP3 | Trích log khảo sát, điền bằng chứng và impact, mở rộng benchmark lên 20 ca. | 17/20 qua Q1. B11–B19 dẫn tới ghi chép Q4/Q8. Giữ nguyên B01–B10, ngưỡng và metric CP2. |
 | CP3 · cập nhật khảo sát | Thêm PH21–PH23, tính lại bằng chứng và impact, xuất bản Excel đã ẩn danh. | 20/23 qua Q1. Xem `evidence/summary.md`. |
+| CP4 | Điền chi phí, rủi ro và khai báo AI. | Mô phỏng của Dũng dùng tỷ lệ lượt 2. Hồ sơ rủi ro đối chiếu B01, B04 và báo cáo ba lượt đánh giá. |
 
 **Sau CP4 (đến 23:59 Thứ Bảy 28/11)** (sửa theo góp ý — không sửa chuẩn "đạt", câu thử, số bằng chứng, kết quả các lượt đã chạy)
 

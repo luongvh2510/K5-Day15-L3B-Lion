@@ -20,3 +20,6 @@ Cấu hình model thật trong `.env`: `MODEL_PROVIDER=openrouter` (nhóm đang 
 
 Kiểm thử: `python3 -m unittest discover -s tests -v`.
 
+## Dùng AI vào việc gì
+
+Codex hỗ trợ viết khung CP2, soạn câu hỏi và benchmark, tổng hợp số liệu khảo sát và cập nhật tài liệu. Claude Code viết agent, prompt và các bản sửa lỗi giữa ba lượt đánh giá, đồng thời đề xuất điểm cột `pass`; Lương duyệt từng thay đổi và từng điểm trước khi commit. Xem [khai báo chi tiết](docs/ai-usage.md).

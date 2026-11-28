@@ -3,7 +3,7 @@
 ## 1. Nguồn và mẫu số
 
 - [Khảo sát Q1–Q8](survey/questions.md) và [log theo từng người](survey/results.csv) ghi **23 mã duy nhất**. **20/23** trả lời Q1 “Có”, gồm PH21–PH23 mới bổ sung. PH04, PH09 và PH17 không qua sàng lọc. Bản Excel trong repo đã ẩn danh, chỉ giữ mã PH và Q1–Q8.
-- Đủ **20 phản hồi qua sàng lọc** theo Q1. BTC yêu cầu 20 người ngoài nhóm, còn bảng khảo sát chưa có thông tin xác nhận điều kiện ngoài nhóm, nên **nguồn khảo sát chưa đạt ngưỡng riêng**. Kênh tuyển mẫu và thời gian mở khảo sát chưa được ghi nhận. Mẫu này mô tả những người trong file.
+- **Khảo sát — nguồn đạt ngưỡng:** Cường xác nhận cả **20 người qua Q1 đều ở ngoài nhóm Lion**. Cột `outside_lion` trong [log khảo sát](survey/results.csv) ghi xác nhận theo mã PH. Xác nhận dựa trên đối chiếu của Cường sau khảo sát; repo chưa có tài liệu đối chiếu (danh sách người nhận có danh tính nên không đưa lên). Kênh tuyển mẫu và thời gian mở khảo sát chưa được ghi nhận. Mẫu này mô tả những người trong file.
 - **Phỏng vấn — nguồn đạt ngưỡng:** [P1](interviews/P1.md), [P2](interviews/P2.md), [P3](interviews/P3.md), **3 người ngoài nhóm**, cả 3 đều đặt đồ ăn hộ nhóm 4–6 người trong 1 tháng qua (sinh viên ở trọ, nhân viên kế toán văn phòng, thiết kế đồ họa tự do). Phỏng vấn tối 27/11 qua tin nhắn (P1, P3) và điện thoại (P2), hỏi về lần đặt gần nhất. Người hỏi và ghi: Dũng. Mỗi người một file ghi chép theo mẫu guide 1.2.
 - Hai nguồn đếm riêng, không cộng chung. Phỏng vấn có n = 3 nên ghi x/3, không ghi %.
 
@@ -59,6 +59,6 @@
 
 Giữ lát cắt D2 vì người trả lời mô tả việc sửa món, đổi quán và hỏi lại. Điều chỉnh giả thuyết CP1: 13/20 chưa chốt ngay, còn riêng nhãn “sót lời dặn” có 6/20. Q5 đo toàn bộ thời gian gom đến chốt nên chưa biết phần thời gian tăng thêm do từng lỗi hoặc công cụ sẽ tiết kiệm được bao nhiêu. PH07 và PH22 cho thấy một mẫu chat rõ hoặc quán quen có thể giúp chốt suôn sẻ.
 
-Phỏng vấn 3 người ngoài nhóm là nguồn đạt ngưỡng của bộ bằng chứng (≥3 người, đúng đối tượng, mỗi người một file ghi chép), kèm 10 trích dẫn nguyên văn từ hai nguồn. Khảo sát đủ 20 người qua Q1 và dùng để đếm quy mô, nhưng chưa đạt ngưỡng riêng cho tới khi xác nhận được đó là người ngoài nhóm.
+Cả hai nguồn đạt ngưỡng riêng: 3 người phỏng vấn ngoài nhóm có ghi chép từng buổi và 20 người khảo sát ngoài nhóm qua Q1. Hồ sơ có 10 trích dẫn nguyên văn từ hai nguồn.
 
 **Giả thuyết CP1 phải đổi một phần:** việc phải hỏi lại và sửa giỏ là có thật ở cả hai nguồn, nhưng "sót lời dặn" yếu hơn giả định (6/20 khảo sát, 0/3 phỏng vấn). Rủi ro dị ứng và ăn chay có thật (2/3 phỏng vấn, PH05, PH23) và người đặt hiện tự kiểm bằng mắt hoặc gọi điện cho quán. **Điều vẫn chưa biết:** công cụ tiết kiệm được bao nhiêu phút mỗi lần, và người dùng có chịu dán chat vào một công cụ riêng hay không.
