@@ -16,14 +16,43 @@ LOCK_PROTECTED = {"UNSET_VEGETARIAN", "REMOVE_ALLERGEN"}
 # ---------- hồ sơ ----------
 
 def _find(profile, name):
-    key = (name or "").strip().casefold()
+    if not isinstance(name, str):
+        return None
+    key = name.strip().casefold()
     return next((m for m in profile["members"] if m["name"].casefold() == key), None)
+
+
+def _preference_key(text):
+    if not isinstance(text, str):
+        return None
+    return unicodedata.normalize("NFC", " ".join(text.split())).casefold()
+
+
+def _move_preference(profile, source, text, recipients):
+    """Chuyển một lời dặn đã ghi sau khi xác minh tất cả người nhận."""
+    if not isinstance(text, str) or not text.strip() or not isinstance(recipients, list) or not recipients:
+        return False
+    targets = [_find(profile, name) for name in recipients]
+    if any(target is None or target is source for target in targets):
+        return False
+    key = _preference_key(text)
+    preference = next((pref for pref in source["preferences"] if _preference_key(pref) == key), None)
+    if preference is None:
+        return False
+
+    source["preferences"] = [pref for pref in source["preferences"] if _preference_key(pref) != key]
+    if "host_preferences" in source:
+        source["host_preferences"] = [pref for pref in source["host_preferences"] if _preference_key(pref) != key]
+    for target in targets:
+        if all(_preference_key(pref) != key for pref in target["preferences"]):
+            target["preferences"].append(preference)
+    return True
 
 
 def apply_changes(profile, changes, locked):
     """Áp thay đổi lên bản sao hồ sơ. Đã khoá thì bỏ mọi phép gỡ ràng buộc cứng (BR-12)."""
     new = copy.deepcopy(profile)
-    dropped = []
+    dropped, answered = [], []
     for change in changes:
         op = change.get("op")
         if locked and op in LOCK_PROTECTED:
@@ -40,9 +69,7 @@ def apply_changes(profile, changes, locked):
             dropped.append(change)
             continue
         if op == "RESOLVE_QUESTION":
-            for q in new.get("questions", []):
-                if q["id"] == change.get("question_id"):
-                    q["status"] = "ANSWERED"
+            answered.append(change.get("question_id"))
             continue
         m = _find(new, change.get("member"))
         if op == "ADD_MEMBER":
@@ -63,6 +90,13 @@ def apply_changes(profile, changes, locked):
             m["allergens"].pop(change.get("tag"), None)
         elif op == "ADD_PREFERENCE" and change.get("text"):
             m["preferences"].append(change["text"])
+        elif op == "MOVE_PREFERENCE":
+            if not _move_preference(new, m, change.get("text"), change.get("recipients")):
+                dropped.append(change)
+    if answered and not any(change.get("op") == "MOVE_PREFERENCE" for change in dropped):
+        for q in new.get("questions", []):
+            if q["id"] in answered:
+                q["status"] = "ANSWERED"
     return new, dropped
 
 
@@ -214,7 +248,9 @@ def _answer_question(session, text):
     if not new.get("budget"):
         _ask(new, None, llm_steps.BUDGET_QUESTION)
     session["profile"] = new
-    if result["reply"]:
+    if any(change.get("op") == "MOVE_PREFERENCE" for change in dropped):
+        _msg(session, "INFO", "Chưa chuyển được món. Bạn xác nhận lại tên món và người nhận nhé.")
+    elif result["reply"]:
         _msg(session, "INFO", result["reply"])
     for q in open_questions(new):
         _msg(session, "QUESTION", q["text"])

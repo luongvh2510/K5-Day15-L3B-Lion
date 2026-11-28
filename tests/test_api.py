@@ -336,6 +336,41 @@ class TestAPI(unittest.TestCase):
         self.assertEqual((status, error['error']['code']), (409, 'INVALID_STATE'))
         self.assertEqual(self.request('GET', path)[1], draft)
 
+    def test_draft_answer_moves_dish_preferences_to_recipients(self):
+        an = member('An', vegetarian=True)
+        an['preferences'] = ['cơm gà', 'ít cay']
+        an['quotes'] = ['An: lấy thêm cơm gà']
+        question = {'id': 'q1', 'member': 'An', 'text': 'An ăn chay. Cơm gà là cho ai?', 'status': 'OPEN'}
+        draft_profile = profile([an, member('Dũng'), member('Chi')], questions=[question])
+        steps = api.core.llm_steps
+
+        for answer, recipients, expected in [
+            ('Cơm gà dành cho Dũng', ['Dũng'], [['ít cay'], ['cơm gà'], []]),
+            ('Cơm gà cho cả nhóm, trừ An', ['Dũng', 'Chi'], [['ít cay'], ['cơm gà'], ['cơm gà']]),
+            ('Cơm gà cho Dũng và Tuấn', ['Dũng', 'Tuấn'], [['cơm gà', 'ít cay'], [], []]),
+        ]:
+            with self.subTest(answer=answer):
+                with mock.patch.object(steps, 'extract_profile', return_value=draft_profile):
+                    _, draft = self.request('POST', '/sessions', {'chat_text': an['quotes'][0]})
+                path = '/sessions/' + draft['session_id']
+                result = {
+                    'changes': [
+                        {'op': 'RESOLVE_QUESTION', 'question_id': 'q1'},
+                        {'op': 'MOVE_PREFERENCE', 'member': 'An', 'text': 'cơm gà', 'recipients': recipients},
+                    ],
+                    'reply': 'Đã chuyển món.',
+                }
+                with mock.patch.object(steps, 'call_model', return_value={'text': json.dumps(result)}):
+                    status, updated = self.request('POST', path + '/messages', {'text': answer})
+                self.assertEqual((status, updated['status']), (200, 'PROFILE_DRAFT'))
+                self.assertEqual([[p['text'] for p in m['preferences']] for m in updated['members']], expected)
+                self.assertEqual(updated['members'][0]['hard_constraints'], draft['members'][0]['hard_constraints'])
+                self.assertEqual(updated['members'][0]['quotes'], an['quotes'])
+                moved = 'cơm gà' not in expected[0]
+                self.assertEqual(updated['questions'][0]['status'], 'ANSWERED' if moved else 'OPEN')
+                self.assertEqual(updated['can_confirm'], moved)
+                self.assertEqual(self.request('GET', path)[1], updated)
+
     def test_unexpected_error_returns_json_500(self):
         with mock.patch.object(api.core.llm_steps, 'extract_profile', side_effect=KeyError('boom')):
             status, result = self.request('POST', '/sessions', {'chat_text': 'An: 300k'})

@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lion · Demo D2</title>
+<style>
+  @page { size: 1280px 720px; margin: 0; }
+  :root {
+    font-family: "Segoe UI", system-ui, sans-serif;
+    color: #202038;
+    background: #e7e3f0;
+    font-size: 20px;
+    line-height: 1.38;
+    --purple: #5736a6;
+    --plum: #392467;
+    --slate: #514b66;
+    --line: #ded7ec;
+    --lavender: #efe9fa;
+    --white: #fff;
+  }
+  * { box-sizing: border-box; }
+  body, h1, h2, p, blockquote { margin: 0; }
+  h1 { font-size: 48px; line-height: 1.11; letter-spacing: -.045em; }
+  h2 { font-size: 26px; line-height: 1.17; letter-spacing: -.025em; }
+  strong, b { font-weight: 700; }
+  table { width: 100%; border-collapse: collapse; text-align: left; }
+  th, td { padding: 12px 16px; vertical-align: middle; }
+  thead { background: var(--lavender); color: var(--plum); }
+  thead th { font-size: .85em; }
+  tbody tr + tr { border-top: 1px solid var(--line); }
+  .slide {
+    width: 1280px;
+    height: 720px;
+    margin: 0 auto;
+    padding: 37px 60px 27px;
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    gap: 20px;
+    background: linear-gradient(145deg, #fdfcff 30%, #f3eff9);
+    break-after: page;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .slide:last-child { break-after: auto; }
+  .masthead, .source { display: flex; align-items: center; justify-content: space-between; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--plum); }
+  .mark {
+    display: grid;
+    place-items: center;
+    width: 31px;
+    height: 31px;
+    border-radius: 9px;
+    background: linear-gradient(145deg, #8a60d2, #4e2b93);
+    color: white;
+    font-size: 20px;
+  }
+  .page { color: var(--purple); font-weight: 700; letter-spacing: .08em; font-size: 17px; }
+  .source { border-top: 1px solid var(--line); padding-top: 11px; color: var(--slate); font-size: 14px; }
+  .heading > p { margin-top: 8px; color: var(--slate); font-size: 21px; }
+  .content { min-height: 0; }
+  .stack { display: flex; flex-direction: column; gap: 16px; }
+  .pair, .trio { display: grid; gap: 16px; }
+  .pair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .trio { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .panel, .table-panel { background: var(--white); border: 1px solid var(--line); border-radius: 16px; }
+  .panel { padding: 19px 22px; }
+  .table-panel { overflow: hidden; }
+  .panel > p { margin-top: 6px; }
+  .label { color: var(--purple); font-size: 16px; font-weight: 700; letter-spacing: .035em; }
+  .big { font-size: 47px; line-height: 1.04; font-weight: 750; letter-spacing: -.045em; color: var(--plum); }
+  .note { color: var(--slate); font-size: 17px; }
+  .callout { border-left: 5px solid #845bcd; background: var(--lavender); padding: 13px 18px; border-radius: 0 12px 12px 0; }
+  .dark {
+    color: white;
+    background: radial-gradient(ellipse at 96% 0, #6947a1, transparent 63%), #25203d;
+  }
+  .dark .brand, .dark .page, .dark .heading > p, .dark .source { color: #eee6fe; }
+  .dark .source { border-color: #776894; }
+  .dark .panel { background: #3b2f56; border-color: #776894; }
+  .dark .label, .dark .big { color: #e7d6ff; }
+  .dark .note { color: #eee6fe; }
+  .proof-stat { min-height: 116px; }
+  .quote { padding: 17px 22px; border-radius: 13px; background: #f0e8fd; color: #32244b; }
+  .quote blockquote { font-size: 24px; line-height: 1.28; }
+  .quote figcaption { margin-top: 7px; font-size: 16px; font-weight: 700; color: #514171; }
+  .impact th:first-child { width: 27%; }
+  .impact tr:first-child { background: #faf7ff; }
+  .impact td { height: 81px; }
+  .flow { display: grid; gap: 12px; }
+  .phase { display: grid; grid-template-columns: 178px 1fr; align-items: stretch; gap: 12px; }
+  .phase-title { padding: 13px 15px; border-radius: 11px; background: var(--plum); color: white; font-size: 19px; font-weight: 700; }
+  .phase-title span { display: block; margin-bottom: 3px; color: #e4d6f9; font-size: 15px; }
+  .flow-track { display: grid; grid-template-columns: 1fr 24px 1fr 24px 1fr; gap: 7px; align-items: stretch; }
+  .step { padding: 12px; border-radius: 11px; border: 1px solid var(--line); background: white; font-size: 18px; }
+  .step b { display: block; }
+  .step.ai { background: #efe8fb; border-color: #d8c8f0; color: #392467; }
+  .step.code { background: #e2f4ee; border-color: #bdded2; color: #16493b; }
+  .arrow { align-self: center; text-align: center; color: var(--purple); font-size: 24px; }
+  .demo-card { padding: 17px 20px; }
+  .demo-card h2 { margin: 5px 0 12px; }
+  .demo-card .excerpt { margin: 4px 0 10px; font-size: 18px; line-height: 1.34; }
+  .demo-card .excerpt:last-child { margin-bottom: 0; }
+  .risk { border-top: 5px solid #8156bb; }
+  .normal { border-top: 5px solid #51927d; }
+  .run { padding: 10px 15px; }
+  .run b { color: var(--plum); font-size: 27px; }
+  .run code { display: block; font-size: 15px; color: var(--slate); overflow-wrap: anywhere; }
+  .eval { gap: 11px; }
+  .metrics { font-size: 17px; }
+  .metrics th, .metrics td { padding: 7px 13px; }
+  .metrics thead th { font-size: 16px; }
+  .metrics tbody th { font-weight: 650; }
+  .metrics td { white-space: nowrap; }
+  .fail { color: #912c50; font-weight: 700; }
+  .costs { font-size: 19px; }
+  .costs td { height: 53px; }
+  .costs tbody tr:first-child { background: #faf7ff; }
+  .comparison { font-size: 19px; }
+  .decision { font-size: 67px; color: #e7d6ff; line-height: 1.02; letter-spacing: -.05em; }
+  .decision-cards .panel { min-height: 152px; }
+  .decision .decision-word { font-weight: 750; }
+  .priorities { gap: 12px; }
+  .priority { padding: 13px 19px; }
+  .priority h2 { display: inline; font-size: 23px; }
+  .priority p { margin-top: 4px; font-size: 18px; }
+  @media screen { .slide + .slide { margin-top: 18px; } }
+</style>
+</head>
+<body>
+<section class="slide dark" aria-labelledby="slide-1">
+  <div class="masthead"><div class="brand"><span class="mark">L</span> Lion</div><span class="page">1/8</span></div>
+  <div class="heading">
+    <h1 id="slide-1">Người dùng &amp; pain</h1>
+    <p>Người cầm quỹ đọc chat và chọn từng món để đặt hộ nhóm 4–6 người.</p>
+  </div>
+  <div class="content stack">
+    <div class="trio">
+      <div class="panel proof-stat"><div class="big">13/20</div><p>phải sửa món, đổi quán hoặc không đặt được ở lần gần nhất</p></div>
+      <div class="panel proof-stat"><div class="big">14 phút</div><p>trung vị từ gom yêu cầu đến chốt đơn (19 câu trả lời bằng số)</p></div>
+      <div class="panel proof-stat"><div class="big">3/3</div><p>người phỏng vấn gom món qua chat và phải hỏi lại, sửa giỏ hoặc đổi quán</p></div>
+    </div>
+    <figure class="quote" style="margin: 0">
+      <blockquote>“Mấy đứa trong phòng nhắn toàn kiểu 'như cũ' với 'gì cũng được', làm mình vừa bấm vừa phải hỏi lại từng đứa một, mệt xỉu.”</blockquote>
+      <figcaption>P1 · Sinh viên ở trọ, phỏng vấn ẩn danh</figcaption>
+    </figure>
+    <p class="note">Phỏng vấn có 3 người ngoài nhóm. Khảo sát có 20/23 người qua sàng lọc, chưa xác nhận điều kiện ngoài nhóm.</p>
+  </div>
+  <footer class="source">Nguồn · evidence/summary.md §1–3</footer>
+</section>
+
+<section class="slide" aria-labelledby="slide-2">
+  <div class="masthead"><div class="brand"><span class="mark">L</span> Lion</div><span class="page">2/8</span></div>
+  <div class="heading">
+    <h1 id="slide-2">Vì sao chọn bài này</h1>
+    <p>D2 giải quyết lời dặn ăn uống và kiểm luôn phí ship trong cùng một giỏ.</p>
+  </div>
+  <div class="content stack">
+    <div class="table-panel">
+      <table class="impact" aria-label="So sánh impact hai hướng">
+        <thead><tr><th>Hướng</th><th>Người gặp</th><th>Lượt / người<br>trong 30 ngày</th><th>Phút / lượt</th><th>Impact trong<br>30 ngày</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Đặt hộ có ràng buộc ăn uống <span class="label">· CHỌN D2</span></th><td>9/20</td><td>4,11</td><td>18,375</td><td><strong>~680 phút</strong></td></tr>
+          <tr><th scope="row">Chỉ cảnh báo vượt quỹ sau ship</th><td>6/20</td><td>4,5</td><td>15</td><td><strong>405 phút</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="callout"><strong>Hướng loại</strong> · Cảnh báo phí ship riêng lẻ chưa xử lý sót lời dặn hoặc thiếu thông tin thành phần. D2 giới hạn ở giỏ một quán cho 5 người.</p>
+    <p class="note">Impact là ước tính thời gian toàn quy trình trong từng phân nhóm. Hai phân nhóm có thể trùng người. Chưa đo thời gian tiết kiệm.</p>
+  </div>
+  <footer class="source">Nguồn · spec.md §2</footer>
+</section>
+
+<section class="slide" aria-labelledby="slide-3">
+  <div class="masthead"><div class="brand"><span class="mark">L</span> Lion</div><span class="page">3/8</span></div>
+  <div class="heading">
+    <h1 id="slide-3">Giải pháp</h1>
+    <p>Người đặt hộ nhóm 5 người dán chat có quỹ chung để nhận giỏ từ một quán đã qua kiểm tra, hoặc phương án điều chỉnh cụ thể.</p>
+  </div>
+  <div class="content stack">
+    <div class="flow" role="group" aria-label="Luồng hai giai đoạn của Lion">
+      <div class="phase">
+        <div class="phase-title"><span>Giai đoạn 1</span>Làm rõ yêu cầu</div>
+        <div class="flow-track">
+          <div class="step"><b>Người đặt</b>Dán chat nhóm</div><span class="arrow" aria-hidden="true">→</span>
+          <div class="step ai"><b>AI</b>Đọc hồ sơ, hỏi lại nếu mơ hồ hoặc thiếu quỹ</div><span class="arrow" aria-hidden="true">→</span>
+          <div class="step code"><b>Người đặt + code</b>Duyệt hồ sơ, khóa dị ứng và ăn chay</div>
+        </div>
+      </div>
+      <div class="phase">
+        <div class="phase-title"><span>Giai đoạn 2</span>Lập và duyệt giỏ</div>
+        <div class="flow-track">
+          <div class="step ai"><b>AI + code</b>Chọn quán, lọc món an toàn rồi chọn món</div><span class="arrow" aria-hidden="true">→</span>
+          <div class="step code"><b>Code kiểm giỏ</b>Đối chiếu menu, dị ứng, món chay và tổng gồm ship</div><span class="arrow" aria-hidden="true">→</span>
+          <div class="step"><b>Người đặt</b>Duyệt giỏ để chốt tin nhắn gửi nhóm</div>
+        </div>
+      </div>
+    </div>
+    <p class="callout"><strong>Nếu chưa lập được giỏ</strong> · Báo lý do, đề xuất tăng quỹ hoặc đổi quán. Món thiếu thông tin thành phần bị loại khi cần kiểm ràng buộc.</p>
+    <p class="note"><strong>Một agent, hai giai đoạn.</strong> AI gợi ý và hỏi lại theo nội dung chat. Người đặt duyệt hồ sơ và giỏ vì sai dị ứng có thể gây hại sức khỏe.</p>
+  </div>
+  <footer class="source">Nguồn · spec.md §4 (lát cắt, thiết kế hai giai đoạn và mức tự động)</footer>
+</section>
+
+<section class="slide" aria-labelledby="slide-4">
+  <div class="masthead"><div class="brand"><span class="mark">L</span> Lion</div><span class="page">4/8</span></div>
+  <div class="heading">
+    <h1 id="slide-4">Demo live</h1>
+    <p>Hai ca từ bộ benchmark, với đầu vào và kết quả kỳ vọng trích nguyên văn.</p>
+  </div>
+  <div class="content stack">
+    <div class="pair">
+      <article class="panel demo-card normal">
+        <div class="label">B01 · CA THƯỜNG</div>
+        <h2>Lập giỏ phở cho cả nhóm</h2>
+        <div class="label">Đầu vào</div>
+        <p class="excerpt">Quán ứng viên: store_01, store_03. Ngân sách 300000đ. Phí ship mô phỏng 15000đ. Người đặt đã xác nhận hồ sơ, cả 5 người đều không có ràng buộc ăn uống. Chat: An: phở gà ức | Bình: phở gà ức | Chi: phở gà ức | Dũng: phở gà ức | Hà: phở gà ức. Tự chọn quán và lập giỏ nhóm.</p>
+        <div class="label">Kỳ vọng</div>
+        <p class="excerpt">Hệ thống tự chọn store_01. Giỏ hợp lệ: An, Bình, Chi, Dũng, Hà mỗi người một dish_009 giá 54000đ. Tổng món 270000đ, ship 15000đ, tổng 285000đ, còn 15000đ.</p>
+      </article>
+      <article class="panel demo-card risk">
+        <div class="label">B07 · CA KHÓ</div>
+        <h2>Làm rõ dị ứng hải sản</h2>
+        <div class="label">Đầu vào</div>
+        <p class="excerpt">Quán ứng viên: store_02. Ngân sách 300000đ. Phí ship mô phỏng 15000đ. Hồ sơ chưa xác nhận. Chat: An: mình dị ứng hải sản | Bình: bún chả | Chi: ăn gì cũng được | Dũng: bún riêu | Hà: ăn gì cũng được. Phân tích chat rồi lập giỏ nếu đủ thông tin.</p>
+        <div class="label">Kỳ vọng</div>
+        <p class="excerpt">Hỏi An dị ứng cụ thể với cá, giáp xác như tôm/cua, nhuyễn thể như mực hoặc nhóm nào khác. Tạm dừng trước khi chốt giỏ.</p>
+      </article>
+    </div>
+    <p class="callout"><strong>Nếu mất mạng</strong> · Mở video dự phòng.</p>
+  </div>
+  <footer class="source">Nguồn · eval/benchmark.csv (B01, B07) · slides/outline.md (phương án dự phòng)</footer>
+</section>
+
+<section class="slide" aria-labelledby="slide-5">
+  <div class="masthead"><div class="brand"><span class="mark">L</span> Lion</div><span class="page">5/8</span></div>
+  <div class="heading">
+    <h1 id="slide-5">Đánh giá thế nào</h1>
+    <p>Menu mô phỏng 100 món, 10 quán · 20 ca gồm 4 thường, 14 khó, 2 từ chối · Người chấm 1/0 theo tiêu chí từng ca.</p>
+  </div>
+  <div class="content stack eval">
+    <div class="trio">
+      <div class="panel run"><span class="label">LƯỢT 1</span> <b>14/20 · 70%</b><code>run-1@20261128-082642</code></div>
+      <div class="panel run"><span class="label">LƯỢT 2</span> <b>15/20 · 75%</b><code>run-2@20261128-090040</code></div>
+      <div class="panel run"><span class="label">LƯỢT 3</span> <b>18/20 · 90%</b><code>run-3@20261128-091232</code></div>
+    </div>
+    <div class="table-panel">
+      <table class="metrics" aria-label="Kết quả so với ngưỡng đã chốt">
+        <thead><tr><th>Metric</th><th>Ngưỡng</th><th>Lượt 1</th><th>Lượt 2</th><th>Lượt 3</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Ràng buộc ăn uống</th><td>6/6</td><td class="fail">5/6</td><td class="fail">5/6</td><td class="fail">5/6 (B04)</td></tr>
+          <tr><th scope="row">Giỏ đúng menu và quỹ</th><td>≥ 3/4</td><td>4/4</td><td>3/4</td><td>3/4</td></tr>
+          <tr><th scope="row">Xử lý khi chưa thể chốt</th><td>≥ 5/6, B09 và B10 đạt</td><td>5/6</td><td>5/6</td><td>6/6</td></tr>
+          <tr><th scope="row">Tỷ lệ đạt trên bộ CP2</th><td>≥ 9/10</td><td>9/10</td><td class="fail">8/10</td><td>9/10</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note"><strong>Chuẩn chung</strong> · ≥90% tổng số ca và đạt mọi ngưỡng. Cả 3 lượt có 2/2 ca từ chối đạt và 0 giỏ vi phạm dị ứng, ăn chay hoặc vượt quỹ. <strong>Lượt 3 chưa đạt trọn chuẩn.</strong></p>
+    <p class="note"><strong>Lỗi chính</strong> · Trích xuất sai 3 ca ở lượt 1 (B14, B16, B17), sửa được 2/3 ở lượt 2. Lượt 3 cải thiện chọn quán và câu báo, vẫn còn B17 (ẩn lời dặn) và B04 (hỏi thừa).</p>
+  </div>
+  <footer class="source">Nguồn · eval/README.md §1–6 · eval/report.md §1–5</footer>
+</section>
+
+<section class="slide" aria-labelledby="slide-6">
+  <div class="masthead"><div class="brand"><span class="mark">L</span> Lion</div><span class="page">6/8</span></div>
+  <div class="heading">
+    <h1 id="slide-6">Chi phí khi dùng thật</h1>
+    <p>Mô phỏng 50 phiên · simulate-1@20261128-103318 · Dùng tỷ lệ đạt 75% từ lượt đánh giá 2.</p>
+  </div>
+  <div class="content stack">
+    <div class="table-panel">
+      <table class="costs" aria-label="Chi phí API theo mô hình và kịch bản">
+        <thead><tr><th>Mô hình</th><th>Chi phí / task<br>thành công</th><th>Thấp<br>50 người/tháng</th><th>Cơ sở<br>200 người/tháng</th><th>Cao<br>500 người/tháng</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">DeepSeek V4.1 Flash</th><td><strong>$0.0029</strong></td><td>$0.5076</td><td>$2.03</td><td>$5.08</td></tr>
+          <tr><th scope="row">GPT-4.1 mini</th><td><strong>$0.0038</strong></td><td>$0.6768</td><td>$2.71</td><td>$6.77</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout comparison">
+      <strong>$0.0102/người/tháng</strong> cho DeepSeek ở kịch bản cơ sở, so với <strong>75,6 phút/người/30 ngày</strong> ước tính cho toàn quy trình đặt hộ của phân nhóm D2.
+    </div>
+    <p class="note">Chi phí tính cho API model. Giá GPT-4.1 mini áp trên cùng lượng token đo bằng DeepSeek. Các kịch bản số người là ước tính. Chưa đo được thời gian tiết kiệm, chưa tính hosting và nhân công.</p>
+  </div>
+  <footer class="source">Nguồn · cost/cost-estimate.md §1–3 · spec.md §2</footer>
+</section>
+
+<section class="slide dark" aria-labelledby="slide-7">
+  <div class="masthead"><div class="brand"><span class="mark">L</span> Lion</div><span class="page">7/8</span></div>
+  <div class="heading">
+    <h1 id="slide-7">Kết luận</h1>
+    <p>Đề xuất tiếp tục cải tiến trước khi mở rộng sử dụng.</p>
+  </div>
+  <div class="content stack">
+    <div class="decision"><span class="decision-word">ITERATE</span></div>
+    <div class="trio decision-cards">
+      <div class="panel"><div class="label">BẰNG CHỨNG · TRANG 1</div><div class="big">13/20</div><p>phải sửa món, đổi quán hoặc không đặt được.</p></div>
+      <div class="panel"><div class="label">ĐÁNH GIÁ · TRANG 5</div><div class="big">18/20</div><p>ở lượt 3, nhưng metric ăn uống mới đạt 5/6.</p></div>
+      <div class="panel"><div class="label">CHI PHÍ · TRANG 6</div><div class="big">$0.0029</div><p>mỗi task thành công, mô phỏng với DeepSeek.</p></div>
+    </div>
+    <p class="note">Ưu tiên sửa lỗi ở ràng buộc ăn uống và đo số phút tiết kiệm trong phiên thử thực tế. Chi phí hiện mới tính phần model.</p>
+  </div>
+  <footer class="source">Nguồn · evidence/summary.md §2 · eval/report.md §1, §5 · cost/cost-estimate.md §2–3</footer>
+</section>
+
+<section class="slide" aria-labelledby="slide-8">
+  <div class="masthead"><div class="brand"><span class="mark">L</span> Lion</div><span class="page">8/8</span></div>
+  <div class="heading">
+    <h1 id="slide-8">Nếu có thêm 1 tuần</h1>
+    <p>Ba việc ưu tiên từ các lỗi còn lại trong đánh giá.</p>
+  </div>
+  <div class="content stack priorities">
+    <article class="panel priority"><h2>Đo dao động và chặn câu hỏi thừa</h2><p>Chạy mỗi ca <strong>≥3 lần</strong> và kiểm câu hỏi sau khi hồ sơ đã xác nhận. B01 trượt ở lượt 2, B04 trượt ở lượt 3.</p></article>
+    <article class="panel priority"><h2>Hiện lời dặn cùng câu hỏi mở</h2><p>B17 cần hiện lời dặn bỏ hành tây ngay khi hỏi lại về món trong ảnh. Kiểm lại B08 để lời dặn hiển thị rõ mà không bị hiểu là món đã gán.</p></article>
+    <article class="panel priority"><h2>Tạo bộ 10 ca giữ riêng</h2><p>Dựa vào ghi chép P1–P3 về hết món, mã giảm giá hết lượt và yêu cầu dùng chảo riêng khi ăn chay.</p></article>
+    <p class="note"><strong>Phản hồi thử sản phẩm</strong> · validation/log.md mới có mẫu ghi, chưa có quan sát hay trích dẫn.</p>
+  </div>
+  <footer class="source">Nguồn · eval/report.md §4 · validation/log.md (mẫu chưa điền)</footer>
+</section>
+</body>
+</html>
