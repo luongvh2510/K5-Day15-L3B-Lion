@@ -1,6 +1,7 @@
 """Công cụ chỉ đọc và kiểm giỏ cho D2, suy ra từ data/dataset_mon_an_viet.json."""
 
 import json
+import math
 from functools import lru_cache
 from pathlib import Path
 
@@ -12,7 +13,9 @@ DATA_PATH = Path(__file__).resolve().parents[1] / "data" / "dataset_mon_an_viet.
 ANIMAL_CATEGORIES = {"meat", "seafood", "egg", "dairy"}
 ANIMAL_CONDIMENTS = {"fish_sauce", "shrimp_paste", "shrimp_paste_hue", "fermented_gourami",
                      "fermented_snakehead", "oyster_sauce"}
-SHIPPING_DEFAULT = 15_000
+SHIPPING_DEFAULT = 15_000  # mức cơ bản cho SHIPPING_BASE_KM đầu
+SHIPPING_BASE_KM = 2
+SHIPPING_PER_KM = 5_000
 
 
 @lru_cache(maxsize=1)
@@ -124,8 +127,14 @@ def validate_cart(members, selected, menu, budget, shipping):
 
 @tool
 def shipping_fee(store_id):
-    """Phí ship mô phỏng. Input: mã quán. Output: số đồng (data chưa có phí ship, dùng mặc định). Không tác động ra ngoài."""
-    return SHIPPING_DEFAULT
+    """Phí ship mô phỏng theo distance_km. Input: mã quán. Output: số đồng. Không tác động ra ngoài.
+
+    15.000đ cho 2 km đầu, mỗi km tiếp theo (làm tròn lên) cộng 5.000đ. Quán không có khoảng cách dùng mức cơ bản."""
+    store = next((s for s in _dataset()["stores"] if s["id"] == store_id), None)
+    km = (store or {}).get("distance_km")
+    if km is None or km <= SHIPPING_BASE_KM:
+        return SHIPPING_DEFAULT
+    return SHIPPING_DEFAULT + SHIPPING_PER_KM * math.ceil(round(km - SHIPPING_BASE_KM, 6))
 
 
 @tool

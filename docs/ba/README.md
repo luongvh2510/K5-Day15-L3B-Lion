@@ -11,7 +11,7 @@ Bộ tài liệu đã được rà theo code thật và dữ liệu thật. Ch�
 |---|---|---|
 | Người đặt **chỉ dán chat**: quỹ đọc từ chat (thiếu thì hỏi), **agent tự chọn quán** khi xác nhận, có nút "Đổi quán" | Bỏ ô quỹ, dropdown quán; `POST /sessions` chỉ nhận `{chat_text}` | 00, 02, 03, 04 |
 | Chat dạng **tên một dòng, tin nhắn dòng sau** (một tin có thể nhiều dòng) | Đoạn chat mẫu | 01, 04, 06 |
-| Dữ liệu thật `data/dataset_mon_an_viet.json`: 10 quán `store_xx`, 100 món `dish_xxx`, chỉ món chính, ship cố định 15.000đ | Bỏ menu `r1`/`r2`, món phụ, đồ uống | 01, 04, 06 |
+| Dữ liệu thật `data/dataset_mon_an_viet.json`: 10 quán `store_xx`, 100 món `dish_xxx`, chỉ món chính, phí ship theo `distance_km` | Bỏ menu `r1`/`r2`, món phụ, đồ uống | 01, 04, 06 |
 | **Ăn chay suy từ nguyên liệu**, chay thuần (không trứng, sữa, mắm) | BR-02 | 01 |
 | **10 mã dị ứng theo dữ liệu**: thêm `CRUSTACEAN`, `MOLLUSC`, `CELERY`; bỏ `TREE_NUT`, `SHELLFISH`, `OTHER` | Dropdown dị ứng, prompt | 01, 03, 04 |
 | API thật đã có (`server/api.py`), mock JSON sinh từ API thật ở [`mocks/`](mocks/) | FE dùng mock mới | 03, 04 |

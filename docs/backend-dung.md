@@ -32,7 +32,7 @@ Lương đã sửa `codebase/tools.py` trên nhánh `ai-agent` (chưa hỏi trư
 - `list_restaurants()` giờ trả **danh sách** `[{id, name, menu_type, summary, distance_km}]` (trước là dict `{id: name}`).
 - `load_menu(store_id)` trả thêm `ingredients`, `allergen_sources` (tag → tên nguyên liệu), `animal_ingredients`, `vegetarian`.
 - `dish_exclusion(member, item)` thay `exclusion`: lý do ghi theo nguyên liệu, vd `"dị ứng đậu phộng: có Đậu phộng rang"`, `"không chay: có Nước mắm cá cơm và muối, ..."`.
-- Mới: `shipping_fee(store_id)` (luôn 15.000đ vì data chưa có phí ship), `store_summary(store_id, members, budget, shipping)` → `{id, name, safe_counts, min_total}`.
+- Mới: `shipping_fee(store_id)` (theo `distance_km`: 15.000đ cho 2 km đầu, mỗi km tiếp theo (làm tròn lên) +5.000đ), `store_summary(store_id, members, budget, shipping)` → `{id, name, safe_counts, min_total}`.
 - `safe_mains`, `feasibility`, `validate_cart` giữ chữ ký cũ.
 
 Nếu Dũng đổi tên hay kiểu trả về của các hàm trên, phải sửa `core.py` cùng lúc và chạy lại test (mục 7).

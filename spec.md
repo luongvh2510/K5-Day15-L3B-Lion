@@ -7,7 +7,7 @@ Track: [ ] A · [ ] B · [ ] C · [x] D · [ ] E — bài toán: D2, người c�
 Data BTC cấp đã dùng (nếu có — không commit nguyên file): không dùng (track D không có data BTC cấp)
 
 ## §0. Hiện tại việc này diễn ra thế nào *(guide 1.1)*
-- Luồng hiện tại của việc này, trong khoá hoặc trên app thật (3–5 bước; ảnh chụp từ tài khoản của mình, đã che thông tin): *(chưa kiểm — chưa có ảnh chụp từ tài khoản nhóm; luồng dưới đây là giả thuyết cần xác nhận bằng phỏng vấn)*
+- Luồng tổng hợp từ khảo sát Q3, Q4, Q7 và Q8 (chưa có ảnh chụp app trong repo):
   1. Mọi người nhắn lời dặn rải rác vào nhóm chat (Zalo/Messenger).
   2. Người cầm quỹ đọc lại chat, tự ghi ai ăn chay, ai dị ứng, ai muốn món gì.
   3. Mở app giao đồ ăn, tìm quán, chọn từng món cho từng người.
@@ -18,21 +18,20 @@ Data BTC cấp đã dùng (nếu có — không commit nguyên file): không dù
 ## §1. Người dùng & bằng chứng *(guide 1.1, 1.2)*
 - Người dùng chính (một vai cụ thể): người cầm quỹ chung đi đặt đồ ăn hộ cả nhóm 4–6 người (nhóm bạn, team văn phòng, ban hậu cần CLB).
 - Việc họ cố làm xong (`động từ + đối tượng + bối cảnh`, không có chữ AI): đặt bữa ăn cho cả nhóm từ một quán, trong giới hạn quỹ chung, sao cho ai cũng ăn được món của mình.
-- Hôm nay họ giải bằng gì, hỏng ở đâu, vì sao chưa bỏ: tự đọc chat và tự chọn món trong app giao đồ ăn; hỏng ở chỗ dễ sót lời dặn, khó biết món có thành phần gây dị ứng không, và phí ship làm vượt quỹ. *(giả thuyết, chờ bằng chứng ở `evidence/summary.md`)*
+- Hôm nay họ giải bằng gì, hỏng ở đâu, vì sao chưa bỏ: 9/17 nhận lựa chọn món chủ yếu qua chat nhóm, 4/17 hỏi trực tiếp, 3/17 dùng giỏ chung trên app và 1/17 nhận tin nhắn riêng. Một số người dùng mẫu tin hoặc quán quen để chốt nhanh, như PH07.
 - Pain (KHÔNG chữ AI): người cầm quỹ đặt hộ cả nhóm — phải đọc lại đoạn chat lộn xộn và dò từng món trong menu — vướng ở chỗ dễ sót lời dặn ăn chay/dị ứng, món không ghi thành phần, và phí ship làm vượt quỹ — hậu quả: mất thời gian làm lại, và nguy cơ đặt nhầm món gây dị ứng.
-- Bằng chứng — số chính + kết luận (chi tiết: `evidence/summary.md`): nhóm báo đã phỏng vấn hơn 20 người. Đang chờ ghi chép ẩn danh để xác định số người đúng vai, số gặp vấn đề và trích dẫn nguyên văn.
+- Bằng chứng — số chính + kết luận (chi tiết: `evidence/summary.md`): 17/20 người trả lời có đặt hộ nhóm trong 30 ngày qua. Trong số đó, 11/17 phải sửa món, đổi quán hoặc không đặt được ở lần gần nhất; 5/17 báo sót lời dặn. Trung vị thời gian gom đến chốt là 13 phút (16 câu trả lời bằng số). Nguồn đạt ngưỡng là phỏng vấn 3 người ngoài nhóm (P1–P3): 3/3 gom món qua chat nhóm và phải hỏi lại, sửa giỏ hoặc đổi quán ở lần gần nhất; 2/3 có người ăn chay hoặc dị ứng. Khảo sát chưa đạt ngưỡng riêng (thiếu xác nhận người ngoài nhóm và ít nhất 3 phản hồi).
 
 ## §2. Impact & quyết định chọn *(guide 1.3)*
 
 | Hướng | Bao nhiêu người gặp | Bao nhiêu lần / tháng | Mỗi lần tốn gì | Impact / tháng | Làm kịp không | Chọn? |
 |---|---|---|---|---|---|---|
-| Đặt hộ nhóm có ràng buộc ăn uống (D2) | __ | __ | __ | __ | Có (lát cắt 1 quán, 5 người) | ✓ |
-|  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |
+| Đặt hộ nhóm có ràng buộc ăn uống (D2) | 7/17 báo sót lời dặn hoặc khó xác minh thành phần | 29/7 = 4,14 | 18,5 phút toàn quy trình (6 người có số) | ~537 phút/30 ngày trong phân nhóm (*tự ước tính*) | Có, giỏ một quán cho 5 người | ✓ |
+| Chỉ cảnh báo vượt quỹ khi cộng phí ship | 5/17 chọn nhãn tương ứng ở Q6 | 22/5 = 4,4 | 15,2 phút toàn quy trình (5 người có số) | ~334 phút/30 ngày trong phân nhóm (*tự ước tính*) | Có, cần phí theo quán |  |
 
-- **Impact / tháng** của hướng chọn = __ người × __ lần × __ phút = __ — nguồn từng thừa số: __ (không có nguồn thì ghi rõ *(tự ước tính)*)
-- Hướng ĐÃ LOẠI + vì sao (giữ lại, đừng xoá): __
-- Số lần / tháng của từng kiểu người dùng (dùng cho persona ở §8): __
+- **Cách ước tính impact:** đếm người theo Q6, cộng lượt đặt trong 30 ngày từ Q2 và nhân với thời gian toàn quy trình trung bình Q5 ở những người cùng phân nhóm có ghi số. D2 = 29 lượt × 18,5 phút và nhánh chỉ cảnh báo phí ship = 22 lượt × 15,2 phút. Đây là quy mô thời gian đặt hộ ước tính trong mẫu, chưa đo phần thời gian hao hụt, tỷ lệ sự cố lặp lại hay thời gian có thể tiết kiệm. Hai phân nhóm có thể trùng người, không cộng hai con số. Nguồn: `evidence/survey/results.csv`.
+- Hướng không chọn làm sản phẩm riêng: chỉ cảnh báo tiền ship. Giữ kiểm phí ship trong D2 vì riêng cảnh báo tiền không xử lý được các tình huống sót lời dặn và thiếu thông tin thành phần.
+- Tần suất tham chiếu cho persona: 2–3 lượt/30 ngày có 6 người, 4–5 lượt có 7 người, 6–8 lượt có 4 người (Q2, N = 17).
 
 ## §3. Giải pháp tương tự *(guide 2.1)*
 - **GrabFood đơn nhóm:** đáng học — một người tạo đơn, gửi link, mọi người vào chọn món và chia tiền theo món. Đáng né — mỗi người phải tự mở app và tự chọn, không xử lý trường hợp mọi người chỉ nhắn trong chat rồi một người lo hết. Mình khác — nhận thẳng đoạn chat, rút ràng buộc và lập giỏ cho cả nhóm.
@@ -200,9 +199,9 @@ flowchart TB
 - **Trường hợp đặc thù lĩnh vực (lớp 4).** Kiểm dị ứng, ăn chay, món có trong menu và tổng sau phí ship trước khi hiển thị giỏ hợp lệ. Khi quỹ không đủ, hiện số tiền thiếu theo giỏ tối thiểu (B04–B06).
 
 ## §7. Đánh giá & chuẩn "đạt" *(guide 2.4, 4.1)*
-- Data card: `data/DATA_CARD.md` · bộ câu thử: `eval/benchmark.csv` — 10 câu (thuong 3 · kho 5 · tu_choi 2) · metric: `eval/metric_spec.yaml` (4 metric)
+- Data card: `data/DATA_CARD.md` · bộ câu thử CP3: `eval/benchmark.csv` — 20 câu (thuong 4 · kho 14 · tu_choi 2), gồm 10 ca CP2 và 10 ca mới · metric: `eval/metric_spec.yaml` (4 metric)
 - **Chuẩn "đạt"** (CP2, giữ nguyên đến 23:59 Thứ Bảy 28/11): "Đạt khi ít nhất 90% số ca qua và đạt mọi ngưỡng trong `eval/metric_spec.yaml`. Bắt buộc cả hai ca từ chối đều qua, không có giỏ vi phạm ràng buộc dị ứng hoặc ăn chay, và không có giỏ vượt ngân sách sau khi cộng phí ship."
-- Kết quả: lượt 1 __/__ (__%) · lượt 2 __/__ (__%) — run ID: __ / __ → chi tiết `eval/report.md`, hồ sơ `eval/README.md`
+- Kết quả: lượt 1 14/20 (70%; thuong 4/4 · kho 8/14 · tu_choi 2/2; 10 ca CP2 đạt 9/10) · lượt 2 __/__ (__%) — run ID: run-1@20261128-082642 (deepseek/deepseek-v4.1-flash) / __ → chi tiết `eval/report.md`, hồ sơ `eval/README.md`
 
 ## §8. Chi phí khi dùng thật *(guide 4.2)*
 - Persona + giá: `cost/personas.yaml` · lượt mô phỏng: `cost/simulate-__.csv` (__ phiên)
@@ -225,6 +224,7 @@ flowchart TB
 | Thời điểm | Đổi gì | Vì sao (trỏ về câu thử / lỗi / bằng chứng nào) |
 |---|---|---|
 | Bổ sung hồ sơ CP2 | Ghi mã nguồn mô phỏng SIM-01–SIM-04 và kết quả hai agent chấm độc lập. | B02, B04, B05, B07 có nguồn dựng ca trong Data Card. Kết quả chấm 5 output mô phỏng nằm trong `eval/README.md`. |
+| CP3 | Trích log khảo sát, điền bằng chứng và impact, mở rộng benchmark lên 20 ca. | 17/20 qua Q1. B11–B19 dẫn tới ghi chép Q4/Q8. Giữ nguyên B01–B10, ngưỡng và metric CP2. |
 
 **Sau CP4 (đến 23:59 Thứ Bảy 28/11)** (sửa theo góp ý — không sửa chuẩn "đạt", câu thử, số bằng chứng, kết quả các lượt đã chạy)
 
