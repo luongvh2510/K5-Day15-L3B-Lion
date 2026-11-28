@@ -40,6 +40,6 @@ Khung chỉ dùng thư viện chuẩn của Python. Thêm thư viện thì ghi v
 
 ## Quy ước của nhóm
 
-- Ngôn ngữ trả lời người dùng: __
-- Phong cách code / đặt tên: __
-- Ai duyệt thay đổi do agent tạo trước khi commit: __
+- Ngôn ngữ trả lời người dùng: tiếng Việt (câu hỏi lại, hồ sơ nháp, câu báo, tin nhắn chốt gửi nhóm).
+- Phong cách code / đặt tên: Python thư viện chuẩn, `snake_case`; mỗi bước gọi model là một hàm trong `codebase/llm_steps.py`, prompt để riêng trong `prompts/`; luồng và mọi lời gọi công cụ nằm trong `codebase/core.py`. Commit message có tiền tố `feat:` / `fix:` / `docs:` / `eval:`. Mỗi bản sửa đi kèm test trong `tests/`.
+- Ai duyệt thay đổi do agent tạo trước khi commit: người phụ trách phần đó tự đọc diff và chạy `python -X utf8 -m unittest discover -s tests`; Lương duyệt trước khi merge vào `main` (merge commit, không squash).

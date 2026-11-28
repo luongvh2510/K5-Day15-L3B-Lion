@@ -237,4 +237,4 @@ flowchart TB
 
 | Thời điểm | Đổi gì | Vì sao |
 |---|---|---|
-|  |  |  |
+| 28/11 20:00 | Điền quy ước nhóm trong `AGENTS.md`, thêm reflection của Lương. | Hoàn thiện hồ sơ trước hạn chót; không đổi code, chuẩn "đạt", câu thử hay số liệu. |
