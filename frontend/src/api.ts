@@ -146,7 +146,10 @@ async function mockCall<T>(method: Method, path: string, body?: object): Promise
   }
 
   if (path === "/restaurants") return pick("restaurants");
-  if (path.endsWith("/menu")) return pick("menu_store_08");
+  if (path === "/restaurants/store_08/menu") return pick("menu_store_08");
+  if (path.endsWith("/menu")) {
+    throw new ApiError(404, "NOT_FOUND", "Bản demo chưa có menu cho quán này.");
+  }
   if (method === "GET" && path.startsWith("/sessions/")) {
     return await getMockSession(decodeURIComponent(path.slice("/sessions/".length))) as T;
   }
@@ -179,7 +182,6 @@ async function mockCall<T>(method: Method, path: string, body?: object): Promise
   } else if (path.endsWith("/confirm")) {
     mockSession = await readSession(mockInfeasibleEnabled() ? "session_infeasible" : "session_cart_valid");
   } else if (path.endsWith("/actions")) {
-    const result = await readSession("session_cart_valid");
     const action = (body as { action: Action }).action;
     const restaurant = mockSession?.restaurant;
     if (mockSession?.status === "CART_VALID" && action.type === "CHANGE_RESTAURANT" && !action.restaurant_id && restaurant) {
@@ -187,10 +189,18 @@ async function mockCall<T>(method: Method, path: string, body?: object): Promise
         role: "assistant", kind: "INFO", text: `Chưa có quán khác phù hợp. Mình giữ giỏ ở ${restaurant.name}.`,
       }]);
     } else {
+      let result = await readSession("session_cart_valid");
+      if (action.type === "SELECT_RESTAURANT" && result.restaurant?.id !== action.restaurant_id) {
+        result = await readSession("session_infeasible");
+        if (result.restaurant?.id !== action.restaurant_id) {
+          throw new ApiError(400, "INVALID_INPUT", "Bản demo chưa có dữ liệu giỏ cho quán này.");
+        }
+      }
       mockSession = result;
     }
   } else if (path.endsWith("/finalize")) {
-    mockSession = await readSession("session_finalized");
+    const data = await readSession("session_finalized");
+    mockSession = { ...data, budget: data.cart?.remaining ?? data.budget };
   } else if (path.endsWith("/reopen")) {
     mockSession = await readSession("session_draft");
     mockStep = 0;

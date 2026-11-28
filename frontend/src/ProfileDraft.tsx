@@ -225,15 +225,13 @@ type ProfileDraftProps = {
   openMemberIds: ReadonlySet<string | null>;
   onEdit: SaveMembers;
   headingRef?: Ref<HTMLHeadingElement>;
-  budgetAction?: ReactNode;
-  budgetEditor?: ReactNode;
   editFeedback?: { memberName: string | null; content: ReactNode };
 };
 
 const nameKey = (name: string) => name.trim().normalize("NFC").toLocaleLowerCase("vi-VN");
 
 export default function ProfileDraft({
-  session, busy, openMemberIds, onEdit, headingRef, budgetAction, budgetEditor, editFeedback,
+  session, busy, openMemberIds, onEdit, headingRef, editFeedback,
 }: ProfileDraftProps) {
   const [newName, setNewName] = useState("");
   const [nameError, setNameError] = useState("");
@@ -267,15 +265,7 @@ export default function ProfileDraft({
           <h2 ref={headingRef} tabIndex={-1}>Hồ sơ nhóm</h2>
           {editable && <span className="draft-badge">Bản nháp</span>}
         </div>
-        <div className="budget-control">
-          <div className="budget-display">
-            <span>Quỹ chung</span>
-            <strong>{session.budget === null ? "Chưa xác định" : session.budget.toLocaleString("vi-VN") + "đ"}</strong>
-          </div>
-          {editable && budgetAction}
-        </div>
       </div>
-      {editable && budgetEditor}
       {session.members.length === 0 ? (
         <p className="members-empty">
           Chưa ghi nhận thành viên nào. Bạn có thể thêm thành viên bên dưới hoặc nhắn thông tin nhóm cho Lion.

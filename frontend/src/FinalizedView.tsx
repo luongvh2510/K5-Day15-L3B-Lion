@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import type { Ref } from "react";
 import type { SessionState } from "./session";
 
@@ -40,6 +40,8 @@ type FinalizedViewProps = {
 };
 
 export default function FinalizedView({ session, headingRef }: FinalizedViewProps) {
+  const messageId = useId();
+  const [isMessageExpanded, setIsMessageExpanded] = useState(false);
   const [copyStatus, setCopyStatus] = useState<"idle" | "copying" | "copied" | "failed">("idle");
   const { cart, final_message: message } = session;
   const memberNames = new Map(session.members.map(({ id, name }) => [id, name]));
@@ -53,12 +55,18 @@ export default function FinalizedView({ session, headingRef }: FinalizedViewProp
   async function copySummary() {
     if (!message || copyStatus === "copying") return;
     setCopyStatus("copying");
-    setCopyStatus(await copyText(message) ? "copied" : "failed");
+    const copied = await copyText(message);
+    setCopyStatus(copied ? "copied" : "failed");
+    if (!copied) setIsMessageExpanded(true);
   }
 
   return (
     <div className="finalized-view">
-      <h2 className="order-panel-title" ref={headingRef} tabIndex={-1}>Đơn đã được chốt</h2>
+      <header className="final-celebration">
+        <span className="final-success-badge" aria-hidden="true">✓</span>
+        <h2 ref={headingRef} tabIndex={-1}>Chúc mừng bạn đã đặt đơn thành công</h2>
+        <p>Đơn nhóm đã được chốt. Sao chép tin nhắn để gửi vào nhóm chat.</p>
+      </header>
       <table className="final-summary" aria-label="Tóm tắt đơn đã chốt">
         <thead>
           <tr>
@@ -87,20 +95,34 @@ export default function FinalizedView({ session, headingRef }: FinalizedViewProp
               </th>
               <td className="summary-price">{money(cart.total)}</td>
             </tr>
+            <tr>
+              <th scope="row" colSpan={2}>Quỹ nhóm còn lại</th>
+              <td className="summary-price">
+                {session.budget === null ? "Chưa xác định" : money(session.budget)}
+              </td>
+            </tr>
           </tfoot>
         )}
       </table>
-      {message
-        ? <pre className="final-message" aria-label="Tin nhắn chốt đơn">{message}</pre>
-        : <p className="field-hint">Chưa có nội dung chốt giỏ.</p>}
-      <div className="composer-actions">
+      <div>
+        <div className="final-message-actions">
+          {message && (
+            <button className="button button--example" type="button" aria-expanded={isMessageExpanded}
+              aria-controls={messageId} onClick={() => setIsMessageExpanded((expanded) => !expanded)}>
+              {isMessageExpanded ? "Thu gọn tin nhắn" : "Xem tin nhắn chốt"}
+            </button>
+          )}
+          <button className="button button--primary" type="button" disabled={!message || copyStatus === "copying"}
+            onClick={() => void copySummary()}>Copy</button>
+        </div>
         <p className={`copy-feedback${copyStatus === "failed" ? " field-error" : ""}`} role="status">
           {copyStatus === "copied" && "Đã sao chép!"}
           {copyStatus === "failed" && "Không thể sao chép tự động. Hãy chọn nội dung để sao chép thủ công."}
         </p>
-        <button className="button button--primary" type="button" disabled={!message || copyStatus === "copying"}
-          onClick={() => void copySummary()}>Copy</button>
       </div>
+      {message
+        ? <pre id={messageId} className="final-message" hidden={!isMessageExpanded} aria-label="Tin nhắn chốt đơn">{message}</pre>
+        : <p className="field-hint">Chưa có nội dung chốt giỏ.</p>}
     </div>
   );
 }
