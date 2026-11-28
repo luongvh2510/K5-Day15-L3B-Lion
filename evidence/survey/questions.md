@@ -1,6 +1,6 @@
 # Khảo sát · Lần gần nhất bạn đặt đồ ăn hộ cả nhóm
 
-Nguồn: tab **Dữ liệu khảo sát**, vùng **A4:J24** trong workbook `Khao_sat_dat_do_an_nhom_20_dap_vien.xlsx` do nhóm cung cấp. Workbook chưa ghi kênh gửi, thời điểm mở/chốt hoặc danh sách xác nhận người ngoài nhóm.
+Nguồn: tab **Dữ liệu khảo sát**, vùng **A4:J27** trong workbook `Khao_sat_dat_do_an_nhom_23_dap_vien.xlsx` do nhóm cung cấp. Workbook chưa ghi kênh gửi, thời điểm mở/chốt hoặc danh sách xác nhận người ngoài nhóm. Bản dùng trong repo là [Excel đã ẩn danh](Khao_sat_dat_do_an_nhom_23_dap_vien_an_danh.xlsx).
 
 | Mã | Câu hỏi theo tiêu đề cột trong workbook |
 |---|---|

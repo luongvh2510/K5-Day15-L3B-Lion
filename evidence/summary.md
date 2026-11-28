@@ -2,22 +2,22 @@
 
 ## 1. Nguồn và mẫu số
 
-- [Khảo sát Q1–Q8](survey/questions.md) và [log theo từng người](survey/results.csv) được trích từ workbook nhóm cung cấp. Có **20 mã duy nhất**, **17/20** trả lời Q1 “Có”. PH04, PH09 và PH17 không qua sàng lọc.
-- Ngưỡng khảo sát của BTC là **20 người ngoài nhóm, đúng đối tượng**. File có 17 người đúng hành vi theo Q1 và chưa ghi tình trạng ngoài nhóm, nên chưa xác nhận đạt ngưỡng. Nhóm cũng báo đã phỏng vấn hơn 20 người. Repo chưa có ghi chép từng buổi để kiểm ngưỡng nguồn phỏng vấn.
+- [Khảo sát Q1–Q8](survey/questions.md) và [log theo từng người](survey/results.csv) ghi **23 mã duy nhất**. **20/23** trả lời Q1 “Có”, gồm PH21–PH23 mới bổ sung. PH04, PH09 và PH17 không qua sàng lọc.
+- Đủ **20 phản hồi qua sàng lọc** theo Q1. BTC yêu cầu 20 người ngoài nhóm, còn bảng khảo sát chưa có thông tin xác nhận điều kiện ngoài nhóm. Nhóm cũng báo đã phỏng vấn hơn 20 người, chưa có ghi chép từng buổi trong repo để đối chiếu riêng.
 - Mẫu này mô tả những người trong file. Kênh tuyển mẫu và thời gian mở khảo sát chưa được ghi nhận.
 
 ## 2. Số chính
 
 | Chỉ số | Số đo | Cách đếm |
 |---|---:|---|
-| Kênh chính là chat nhóm | 9/17 (52,9%) | Q3 = Chat nhóm |
-| Phải hỏi lại | 6/17 (35,3%) | Chọn nhãn tương ứng ở Q6 |
-| Sót lời dặn | 5/17 (29,4%) | Chọn nhãn tương ứng ở Q6 |
-| Khó xác minh thành phần | 3/17 (17,6%) | Chọn nhãn tương ứng ở Q6 |
-| Báo vượt quỹ sau khi tính ship | 5/17 (29,4%) | Theo nhãn Q6. Q8 của PH11, PH14 và PH20 cho thấy có thêm yếu tố tài xế, mã giảm giá hoặc cả nhóm chấp nhận trả thêm. |
-| Sửa món, đổi quán hoặc không đặt được | 11/17 (64,7%) | Q7: 7 sửa món, 3 đổi quán, 1 không đặt được. 6 người chốt ngay. |
-| Tần suất đặt | 73 lượt / 17 người trong 30 ngày | Q2, trung bình 4,29 lượt/người |
-| Thời gian gom đến chốt | Trung vị 13 phút, trung bình 14,31 phút | Q5, 16 câu trả lời bằng số. Loại PH15 vì “Không nhớ”. Đây là thời gian toàn quy trình. |
+| Kênh chính là chat nhóm | 10/20 (50%) | Q3 = Chat nhóm |
+| Phải hỏi lại | 7/20 (35%) | Chọn nhãn tương ứng ở Q6 |
+| Sót lời dặn | 6/20 (30%) | Chọn nhãn tương ứng ở Q6 |
+| Khó xác minh thành phần | 4/20 (20%) | Chọn nhãn tương ứng ở Q6 |
+| Chọn nhãn vượt quỹ sau khi tính ship | 6/20 (30%) | Theo Q6. Q8 còn nhắc đến tài xế, mã giảm giá, việc chấp nhận trả thêm hoặc phí hộp. |
+| Sửa món, đổi quán hoặc không đặt được | 13/20 (65%) | Q7: 9 sửa món, 3 đổi quán, 1 không đặt được. 7 người chốt ngay. |
+| Tần suất đặt | 88 lượt / 20 người trong 30 ngày | Q2, trung bình 4,4 lượt/người |
+| Thời gian gom đến chốt | Trung vị 14 phút, trung bình 14,21 phút | Q5, 19 câu trả lời bằng số. Loại PH15 vì “Không nhớ”. Đây là thời gian toàn quy trình. |
 
 ## 3. Trích dẫn nguyên văn đã ẩn danh
 
@@ -27,9 +27,8 @@
 4. **PH06 · Q8:** “Cả nhóm chọn trà sữa xong hết rồi mà lúc checkout app báo quán xa quá phí ship tận 42k, thế là phải hủy hết để tìm quán khác gần trường hơn.”
 5. **PH07 · Q8:** “Mọi người tuân thủ đúng cú pháp nhắn tin và quán này phòng mình ăn quen rồi nên chỉ mất đúng 10 phút là lên đơn xong xuôi.”
 6. **PH18 · Q8:** “Bạn đồng nghiệp gửi ảnh tô bún bò nhưng không nói rõ là lấy tái nạm hay gân, mình phải nhắn hỏi lại, xong lúc chọn lại quên bỏ hành tây theo dặn từ hôm trước.”
+7. **PH23 · Q8:** “Có một bạn đang ăn chay trường nhưng quán bún trộn không ghi rõ nước sốt dùng nước mắm hay nước tương, mình phải gọi trực tiếp cho quán để xác nhận rồi mới dám đặt.”
 
 ## 4. Kết luận
 
-Giữ lát cắt D2 vì người trả lời mô tả việc sửa món, đổi quán và hỏi lại. Điều chỉnh giả thuyết CP1: 11/17 chưa chốt ngay, còn riêng nhãn “sót lời dặn” chỉ có 5/17. Q5 đo toàn bộ thời gian gom đến chốt nên chưa biết phần thời gian tăng thêm do từng lỗi, hoặc công cụ sẽ tiết kiệm được bao nhiêu. PH07 cũng cho thấy một mẫu chat rõ có thể giúp chốt suôn sẻ.
-
-Để hoàn tất nguồn khảo sát, cần xác nhận người ngoài nhóm và thu ít nhất 3 phản hồi hợp lệ nữa nếu cả 17 người đã qua sàng lọc đều là người ngoài nhóm. Một cách khác là bổ sung ghi chép cho ít nhất 3 cuộc phỏng vấn đạt điều kiện theo guide.
+Giữ lát cắt D2 vì người trả lời mô tả việc sửa món, đổi quán và hỏi lại. Điều chỉnh giả thuyết CP1: 13/20 chưa chốt ngay, còn riêng nhãn “sót lời dặn” có 6/20. Q5 đo toàn bộ thời gian gom đến chốt nên chưa biết phần thời gian tăng thêm do từng lỗi hoặc công cụ sẽ tiết kiệm được bao nhiêu. PH07 cho thấy một mẫu chat rõ có thể giúp chốt suôn sẻ.
