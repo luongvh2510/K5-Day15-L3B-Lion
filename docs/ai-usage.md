@@ -17,7 +17,7 @@ Tóm tắt tại [README](../README.md#dùng-ai-vào-việc-gì) và [spec.md §
 | Chấm cột `pass` của 3 lượt model thật | Claude Code | Đề xuất điểm 1/0 cho từng câu theo `pass_criterion`, chỉ đọc output, ghi lý do trượt vào `ghi_chu`. | Lương đọc lại từng câu trượt và duyệt trước khi commit. Chưa có người thứ hai chấm chéo. | Lương |
 | Phí ship theo khoảng cách, ẩn danh ghi chép phỏng vấn | Claude Code | Viết `shipping_fee` trong `codebase/tools.py` kèm test; bỏ tên người được phỏng vấn khỏi P1–P3. | Lương duyệt công thức phí ship; nội dung trả lời phỏng vấn giữ nguyên. | Lương |
 | Báo cáo đánh giá | Claude Code | Soạn `eval/report.md`, mục 5–6 của `eval/README.md` từ CSV các lượt. | Lương đối chiếu số với `python run.py score`. | Lương |
-| Backend, dữ liệu quán, mô phỏng chi phí | *(Dũng bổ sung)* | | | Dũng |
+| Backend, dữ liệu quán, mô phỏng chi phí | Codex | Đọc tài liệu; viết API, lưu phiên SQLite và test; hỗ trợ thêm hàm trong `core.py`, kết nối model, cấu hình persona và lập báo cáo chi phí. | Dũng yêu cầu kiểm tra bằng test, đối chiếu model và lượt chạy; thử model local phát hiện trích sai; xác nhận dùng 75% lượt 2, chạy thử trước rồi chạy 50 phiên DeepSeek. Số người dùng là tự ước tính, giá có nguồn. | Dũng |
 | Frontend | *(Tú bổ sung)* | | | Tú |
 
 **Không dùng AI để:** tạo người được phỏng vấn, trích dẫn, câu trả lời khảo sát; sửa output hay số liệu của các lượt đã chạy (`eval/run-*.csv`, `cost/simulate-*.csv`, `traces/`). Trong file run, AI chỉ điền cột `pass` và `ghi_chu` như trên.
