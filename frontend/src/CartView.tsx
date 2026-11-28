@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { ReactNode, Ref } from "react";
+import type { MouseEventHandler, ReactNode, Ref } from "react";
 import type { SessionState } from "./session";
 
 const money = (value: number) => value.toLocaleString("vi-VN") + "đ";
@@ -9,14 +9,15 @@ type CartViewProps = {
   session: SessionState;
   busy: boolean;
   headingRef: Ref<HTMLHeadingElement>;
+  lockedProfile: ReactNode;
   feedback: ReactNode;
-  onReopen: () => void;
+  onReopen: MouseEventHandler<HTMLButtonElement>;
   onChangeRestaurant: () => void;
   onFinalize: () => void;
 };
 
 export default function CartView({
-  session, busy, headingRef, feedback, onReopen, onChangeRestaurant, onFinalize,
+  session, busy, headingRef, lockedProfile, feedback, onReopen, onChangeRestaurant, onFinalize,
 }: CartViewProps) {
   const [showAllExcluded, setShowAllExcluded] = useState(false);
   const { cart, restaurant, validation } = session;
@@ -57,14 +58,12 @@ export default function CartView({
           <ul className="cart-lines" aria-label="Các suất trong giỏ">
             {cart.lines.map((line) => (
               <li className="cart-line" key={`${line.member_id}:${line.menu_item_id}`}>
-                <div>
-                  <strong>{memberNames.get(line.member_id) ?? line.member_id}</strong>
-                  <p>
-                    {line.name} {line.qty != null && <span className="line-quantity">× {line.qty}</span>}
-                  </p>
-                  {line.reason && <p className="field-hint">{line.reason}</p>}
+                <div className="cart-line-meta">
+                  <span className="line-member">{memberNames.get(line.member_id) ?? line.member_id}</span>
+                  <strong className="line-price">{money(line.unit_price)}</strong>
                 </div>
-                <strong className="line-price">{money(line.unit_price)}</strong>
+                <p className="line-dish">{line.name} {line.qty != null && <span className="line-quantity">× {line.qty}</span>}</p>
+                {line.reason && <p className="line-reason">{line.reason}</p>}
               </li>
             ))}
           </ul>
@@ -105,6 +104,7 @@ export default function CartView({
         <p className="field-hint">Chưa có chi tiết giỏ hàng.</p>
       )}
 
+      {lockedProfile}
       {feedback}
       <div className="composer-actions">
         <button className="button button--example" type="button" disabled={busy} onClick={onReopen}>Sửa hồ sơ</button>

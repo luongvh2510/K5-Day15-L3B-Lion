@@ -1,15 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { FormEvent } from "react";
+import type { FormEvent, MouseEvent } from "react";
 import { api, ApiError, clearMockSession, USE_MOCK } from "./api";
 import CartView from "./CartView";
 import ChatPanel, { ChatBubble } from "./ChatPanel";
+import ConfirmModal from "./ConfirmModal";
 import FinalizedView from "./FinalizedView";
 import InfeasibleView from "./InfeasibleView";
 import ProfileDraft from "./ProfileDraft";
 import type { Action, MemberInput, SessionState } from "./session";
 
 type Work = {
-  kind: "create" | "restore" | "message" | "edit" | "confirm" | "reopen" | "action" | "finalize";
+  kind: "create" | "restore" | "message" | "budget" | "edit" | "confirm" | "reopen" | "action" | "finalize";
   request: () => Promise<SessionState>;
   sessionId?: string;
   editMemberName?: string | null;
@@ -52,6 +53,8 @@ function readSavedSession() {
 export default function App() {
   const [chatText, setChatText] = useState("");
   const [reply, setReply] = useState("");
+  const [budgetDraft, setBudgetDraft] = useState<string | null>(null);
+  const [reopenModalOpen, setReopenModalOpen] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
   const [initialSessionId] = useState(readSavedSession);
   const [session, setSession] = useState<SessionState | null>(null);
@@ -59,6 +62,7 @@ export default function App() {
   const [failure, setFailure] = useState<Failure | null>(null);
   const [storageBlocked, setStorageBlocked] = useState(false);
   const chatInput = useRef<HTMLTextAreaElement>(null);
+  const budgetEditButton = useRef<HTMLButtonElement>(null);
   const draftHeading = useRef<HTMLHeadingElement>(null);
   const replyError = useRef<HTMLParagraphElement>(null);
   const inFlight = useRef(false);
@@ -71,11 +75,15 @@ export default function App() {
   const openMemberIds = new Set(openQuestions.map((question) => question.member_id));
   const sessionStatus = session?.status;
   const isCartStage = sessionStatus === "CART_VALID" || sessionStatus === "CART_INFEASIBLE";
+  const canEditBudget = sessionStatus === "PROFILE_DRAFT";
+  const isBudgetEditorOpen = canEditBudget && budgetDraft !== null;
 
   const resetOrder = useCallback(() => {
     setSession(null);
     setReply("");
     setChatText("");
+    setBudgetDraft(null);
+    setReopenModalOpen(false);
     setShowErrors(false);
     setFailure(null);
     clearMockSession();
@@ -148,6 +156,7 @@ export default function App() {
   }, [initialSessionId, run]);
 
   useEffect(() => {
+    if (sessionStatus !== "PROFILE_DRAFT") setBudgetDraft(null);
     if (sessionStatus) draftHeading.current?.focus();
   }, [sessionStatus]);
 
@@ -186,6 +195,25 @@ export default function App() {
     });
   }
 
+  function closeBudgetEditor() {
+    setBudgetDraft(null);
+    if (failure?.kind === "budget") setFailure(null);
+    budgetEditButton.current?.focus({ preventScroll: true });
+  }
+
+  function submitBudget(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const value = budgetDraft?.trim();
+    if (session?.status !== "PROFILE_DRAFT" || !value) return;
+    const sessionId = session.session_id;
+    void run({
+      kind: "budget",
+      sessionId,
+      request: () => api.sendMessage(sessionId, `Đổi quỹ thành ${value}`),
+      afterSuccess: () => setBudgetDraft(null),
+    });
+  }
+
   function editMembers(members: MemberInput[], editMemberName: string | null, afterSuccess?: () => void) {
     if (session?.status !== "PROFILE_DRAFT") return;
     const sessionId = session.session_id;
@@ -198,9 +226,15 @@ export default function App() {
     void run({ kind: "confirm", sessionId, request: () => api.confirm(sessionId) });
   }
 
+  function askToReopenProfile(event: MouseEvent<HTMLButtonElement>) {
+    if (!isCartStage || inFlight.current) return;
+    event.currentTarget.focus({ preventScroll: true });
+    setReopenModalOpen(true);
+  }
+
   function reopenProfile() {
     if (!session || !isCartStage || inFlight.current) return;
-    if (!window.confirm("Giỏ hiện tại sẽ bị huỷ và bạn phải xác nhận lại hồ sơ. Tiếp tục?")) return;
+    setReopenModalOpen(false);
     const sessionId = session.session_id;
     void run({ kind: "reopen", sessionId, request: () => api.reopen(sessionId) });
   }
@@ -221,7 +255,8 @@ export default function App() {
     if (!inFlight.current) resetOrder();
   }
 
-  const questionHint = `Còn ${openQuestions.length} câu hỏi cần trả lời`;
+  const questionHint = session?.can_confirm === false && openQuestions.length > 0
+    ? `Còn ${openQuestions.length} câu hỏi cần trả lời` : undefined;
   const failureFeedback = failure && (
     <div className="api-error">
       <p className="field-error" ref={replyError} tabIndex={-1} role="alert">{failure.message}</p>
@@ -235,7 +270,7 @@ export default function App() {
   );
   const cartFeedback = (
     <>
-      {failure && failure.kind !== "message" && failureFeedback}
+      {failure && failure.kind !== "message" && failure.kind !== "budget" && failureFeedback}
       {pending === "action" && (
         <p className="reading cart-request" role="status">
           <span className="spinner" aria-hidden="true" />Đang chọn quán và lập giỏ…
@@ -246,6 +281,44 @@ export default function App() {
       {pending === "restore" && <p className="field-hint cart-request" role="status">{RESTORE_MESSAGE}</p>}
     </>
   );
+  const budgetAction = (
+    <button className="button button--plain budget-edit-button" type="button" ref={budgetEditButton}
+      disabled={isLoading} aria-label="Sửa quỹ chung" aria-expanded={isBudgetEditorOpen}
+      aria-controls={isBudgetEditorOpen ? "budget-editor" : undefined}
+      onClick={() => isBudgetEditorOpen ? closeBudgetEditor() : setBudgetDraft("")}>Sửa</button>
+  );
+  const budgetEditor = isBudgetEditorOpen && (
+    <form id="budget-editor" className="budget-editor" onSubmit={submitBudget}
+      onKeyDown={(event) => {
+        if (event.key === "Escape" && !isLoading) {
+          event.preventDefault();
+          closeBudgetEditor();
+        }
+      }}>
+      <fieldset disabled={isLoading}>
+        <label htmlFor="budget-amount">Quỹ mới</label>
+        <div className="budget-editor-actions">
+          <input id="budget-amount" value={budgetDraft ?? ""} placeholder="VD: 200k hoặc 200000"
+            autoFocus autoComplete="off" onChange={(event) => {
+              setBudgetDraft(event.target.value);
+              if (failure?.kind === "budget") setFailure(null);
+            }} />
+          <button className="button button--primary" type="submit" disabled={!budgetDraft?.trim()}>
+            {pending === "budget" ? "Đang gửi…" : "Cập nhật quỹ"}
+          </button>
+          <button className="button button--plain" type="button" onClick={closeBudgetEditor}>Huỷ</button>
+        </div>
+        {failure?.kind === "budget" && failureFeedback}
+      </fieldset>
+    </form>
+  );
+  const lockedProfile = session && isCartStage ? (
+    <details className="locked-profiles">
+      <summary>Xem hồ sơ đã khóa</summary>
+      <ProfileDraft session={session} busy={isLoading} onEdit={editMembers} openMemberIds={openMemberIds} />
+    </details>
+  ) : null;
+  const sessionStorageFeedback = storageBlocked && <p className="field-error">Trình duyệt không cho lưu mã phiên.</p>;
 
   return (
     <>
@@ -254,44 +327,46 @@ export default function App() {
           <div className="brand">
             <span className="brand-icon" aria-hidden="true">L</span>
             <div>
-              <p className="brand-name">Lion</p>
+              <div className="brand-label">
+                <p className="brand-name">Lion</p>
+                {USE_MOCK && <span className="demo-label">Bản demo</span>}
+              </div>
               <h1>Đặt đơn nhóm</h1>
             </div>
           </div>
-          <div className="header-actions">
-            {USE_MOCK && <span className="demo-label">Bản demo</span>}
-            {session && (
-              <>
-                <div className="budget-display">
-                  <span>Quỹ chung</span>
-                  <strong>{session.budget === null ? "Chưa xác định" : session.budget.toLocaleString("vi-VN") + "đ"}</strong>
-                </div>
-                {session.status !== "FINALIZED" && (
-                  <button className="button button--example" type="button" disabled={isLoading}
-                    onClick={startNewOrder}>Làm đơn mới</button>
-                )}
-              </>
-            )}
-          </div>
+          {session && (
+            <div className="header-actions">
+              <button className="button button--example" type="button" disabled={isLoading}
+                onClick={startNewOrder}>Làm đơn mới</button>
+            </div>
+          )}
         </div>
       </header>
 
-      {session ? (
+      {session?.status === "FINALIZED" ? (
+        <main className="workspace finalized-workspace">
+          {sessionStorageFeedback}
+          <section className="composer finalized-card" aria-label="Đơn đã chốt">
+            <FinalizedView session={session} headingRef={draftHeading} />
+          </section>
+        </main>
+      ) : session ? (
         <main className="workspace session-width">
-          {storageBlocked && <p className="field-error">Trình duyệt không cho lưu mã phiên.</p>}
+          {sessionStorageFeedback}
           <div className="session-layout">
             <section className="composer profile-panel" aria-label="Hồ sơ và đơn nhóm">
               {session.status === "PROFILE_DRAFT" ? (
                 <>
                   <ProfileDraft session={session} busy={isLoading} onEdit={editMembers} headingRef={draftHeading}
+                    budgetAction={budgetAction} budgetEditor={budgetEditor}
                     editFeedback={failure?.kind === "edit"
                       ? { memberName: failure.editMemberName ?? null, content: failureFeedback } : undefined}
                     openMemberIds={openMemberIds} />
-                  {failure && failure.kind !== "message" && failure.kind !== "edit" && failureFeedback}
+                  {failure && failure.kind !== "message" && failure.kind !== "budget" && failure.kind !== "edit" && failureFeedback}
                   {pending === "edit" && <p className="field-hint" role="status">Đang lưu hồ sơ…</p>}
                   {pending === "restore" && <p className="field-hint" role="status">{RESTORE_MESSAGE}</p>}
                   <div className="composer-actions">
-                    {!session.can_confirm && <p className="field-hint" id="confirm-hint">{questionHint}</p>}
+                    {questionHint && <p className="field-hint" id="confirm-hint">{questionHint}</p>}
                     {pending === "confirm" && (
                       <p className="reading" role="status">
                         <span className="spinner" aria-hidden="true" />Đang chọn quán và lập giỏ…
@@ -299,30 +374,24 @@ export default function App() {
                     )}
                     <button className="button button--primary" type="button"
                       disabled={isLoading || !session.can_confirm}
-                      title={!session.can_confirm ? questionHint : undefined}
-                      aria-describedby={!session.can_confirm ? "confirm-hint" : undefined}
+                      title={questionHint}
+                      aria-describedby={questionHint ? "confirm-hint" : undefined}
                       onClick={confirmProfile}>Xác nhận hồ sơ</button>
                   </div>
                 </>
               ) : session.status === "CART_VALID" ? (
-                <CartView session={session} busy={isLoading} headingRef={draftHeading} feedback={cartFeedback}
-                  onReopen={reopenProfile} onChangeRestaurant={() => changeCart({ type: "CHANGE_RESTAURANT" })}
+                <CartView session={session} busy={isLoading} headingRef={draftHeading}
+                  lockedProfile={lockedProfile} feedback={cartFeedback}
+                  onReopen={askToReopenProfile} onChangeRestaurant={() => changeCart({ type: "CHANGE_RESTAURANT" })}
                   onFinalize={finalizeCart} />
-              ) : session.status === "CART_INFEASIBLE" ? (
-                <InfeasibleView session={session} busy={isLoading} headingRef={draftHeading}
-                  feedback={cartFeedback} onAction={changeCart} onReopen={reopenProfile} />
               ) : (
-                <FinalizedView message={session.final_message} headingRef={draftHeading} onNewOrder={startNewOrder} />
-              )}
-              {isCartStage && (
-                <details className="locked-profiles">
-                  <summary>Xem hồ sơ đã khóa</summary>
-                  <ProfileDraft session={session} busy={isLoading} onEdit={editMembers}
-                    openMemberIds={openMemberIds} />
-                </details>
+                <InfeasibleView session={session} busy={isLoading} headingRef={draftHeading}
+                  lockedProfile={lockedProfile} feedback={cartFeedback}
+                  onAction={changeCart} onReopen={askToReopenProfile} />
               )}
             </section>
-            <ChatPanel session={session} questions={openQuestions} busy={isLoading} sending={pending === "message"}
+            <ChatPanel session={session} questions={openQuestions} busy={isLoading}
+              sending={pending === "message" || pending === "budget"}
               reply={reply} onSend={sendMessage} onReplyChange={(text) => {
                 setReply(text);
                 if (failure?.kind === "message") setFailure(null);
@@ -390,6 +459,9 @@ export default function App() {
             </fieldset>
           </form>
         </main>
+      )}
+      {isCartStage && reopenModalOpen && (
+        <ConfirmModal onCancel={() => setReopenModalOpen(false)} onConfirm={reopenProfile} />
       )}
     </>
   );
