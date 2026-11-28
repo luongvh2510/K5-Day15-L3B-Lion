@@ -20,3 +20,6 @@ Cấu hình model thật trong `.env`: `MODEL_PROVIDER=openrouter` (nhóm đang 
 
 Kiểm thử: `python3 -m unittest discover -s tests -v`.
 
+## Dùng AI vào việc gì
+
+Codex hỗ trợ viết khung CP2, soạn câu hỏi và benchmark, tổng hợp số liệu khảo sát và cập nhật tài liệu. Hai agent chấm thử độc lập 5 output mô phỏng CP2. Điểm ba lượt đánh giá model thật do người chấm ghi. Xem [khai báo chi tiết](docs/ai-usage.md).
