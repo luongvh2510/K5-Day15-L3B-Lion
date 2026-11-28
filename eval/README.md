@@ -47,11 +47,14 @@ Menu món Việt mô phỏng có 100 món tại 10 quán. B01–B04 cho hệ th�
 
 | Lượt | Run ID | Model | Cấu hình (prompt / công cụ / thay đổi) | Đạt / tổng | % | Đạt chuẩn? |
 |---|---|---|---|---|---|---|
-| 1 | | | | __/__ | | |
-| 2 | | | | __/__ | | |
+| 1 | `run-1@20261128-082642` | `deepseek/deepseek-v4.1-flash` (OpenRouter, temperature 0) | Bản CP3: 5 bước LLM (trích hồ sơ, áp câu trả lời, chọn quán, chọn món, phân loại tin nhắn) + code kiểm giỏ | 14/20 | 70% | Chưa (tổng < 90%, ràng buộc ăn uống 5/6) |
+| 2 | `run-2@20261128-090040` | như lượt 1 | Sửa nhóm lỗi *trích xuất chat*: prompt giữ người nhắn "gì cũng được", hỏi lại khi hai món khác nhau hoặc chỉ gửi ảnh; code lấy người gửi làm thành viên khi model trả rỗng (`21c1358`) | 15/20 | 75% | Chưa (tổng < 90%, ràng buộc ăn uống 5/6, 10 ca CP2 8/10) |
+| 3 *(thêm)* | `run-3@20261128-091232` | như lượt 1 | Thêm: chọn quán ưu tiên sở thích, câu báo nêu ràng buộc và mã quán sai, hồ sơ nháp kèm câu chat gốc (`24915ef`) | 18/20 | 90% | Chưa (ràng buộc ăn uống 5/6 do B04) |
 
 Lượt chạy lại vì lỗi kỹ thuật, lượt sau CP4: ghi thêm dòng, không sửa dòng cũ.
 
 ## 6. Lỗi chính
 
-Tóm 2–3 dòng từ `eval/report.md`: nhóm lỗi lớn nhất · đã sửa gì · còn lại gì.
+- **Nhóm lỗi lớn nhất ở lượt 1:** *trích xuất chat sai* (B14, B16, B17): bỏ sót người nhắn "gì cũng được", gộp hai lựa chọn mâu thuẫn, không hỏi lại khi chỉ có ảnh. Lượt 2 sửa nhóm này (0/3 → 2/3), tổng 70% → 75%; lượt 3 sửa thêm chọn quán và câu báo, lên 90%.
+- **Không lượt nào có giỏ vi phạm dị ứng, ăn chay hay vượt quỹ:** code kiểm cứng chặn ở bước cuối.
+- **Còn lại:** model không ổn định giữa các lần chạy (B01 trượt ở lượt 2, B04 trượt ở lượt 3 dù cùng input), B17 chưa hiện lời dặn khi còn câu hỏi mở, chưa có câu thử giữ riêng. Chi tiết và lỗi cụ thể: [`eval/report.md`](report.md).

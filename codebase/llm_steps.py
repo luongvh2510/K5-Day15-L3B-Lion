@@ -85,6 +85,27 @@ def clean_name(name):
     return " ".join(unicodedata.normalize("NFC", str(name or "")).split())
 
 
+_SENDER = re.compile(r"^\s*([^\W\d_][^\W\d_ ]*(?: [^\W\d_][^\W\d_ ]*){0,2})\s*:(?!//)\s*(\S.*)$")
+
+
+def _senders(chat_text):
+    """Dự phòng khi model trả danh sách thành viên rỗng: mỗi người gửi ở dòng "Tên: nội dung" là một thành viên,
+    không có ràng buộc hay sở thích. Tên chỉ gồm chữ, tối đa 3 từ."""
+    members, by_key = [], {}
+    for line in str(chat_text or "").splitlines():
+        match = _SENDER.match(line)
+        if not match:
+            continue
+        name = clean_name(match[1])
+        m = by_key.get(name.casefold())
+        if m is None:
+            m = by_key[name.casefold()] = {"name": name, "vegetarian": False, "allergens": {},
+                                           "preferences": [], "quotes": []}
+            members.append(m)
+        m["quotes"].append(line.strip())
+    return members
+
+
 def extract_profile(chat_text):
     """Phase 1: đọc chat → {budget, members, questions}. Gộp tên trùng; tag dị ứng ngoài danh mục thành câu hỏi."""
     data = call_json(_system("extract_profile"), "Đoạn chat:\n" + chat_text, ["members"])
@@ -111,6 +132,8 @@ def extract_profile(chat_text):
                 questions.append({"member": name, "text": "%s dị ứng chính xác với chất gì (%s)?" % (name, label or tag)})
         m["preferences"] += [str(x) for x in raw.get("preferences") or [] if isinstance(x, (str, int))]
         m["quotes"] += [str(x) for x in raw.get("quotes") or [] if isinstance(x, (str, int))]
+    if not members:
+        members = _senders(chat_text)
     for q in data.get("questions") or []:
         if isinstance(q, dict) and q.get("text"):
             who = clean_name(q.get("member")) or None

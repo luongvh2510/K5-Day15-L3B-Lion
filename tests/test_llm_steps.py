@@ -66,3 +66,29 @@ class TestPhase1(unittest.TestCase):
             result = llm_steps.apply_answer({"members": []}, {"id": "q1", "text": "?"}, "cho Dũng")
         self.assertEqual([c["op"] for c in result["changes"]], ["ADD_PREFERENCE"])
         self.assertEqual(result["reply"], "ok")
+
+
+EMPTY_JSON = '{"budget": 285000, "members": [], "questions": []}'
+
+
+class TestSenderFallback(unittest.TestCase):
+    def test_empty_members_fall_back_to_chat_senders(self):
+        chat = "Mai: gì cũng được\nTuấn: sao cũng được\nMai: nhanh nha\nLan Anh: tuỳ mọi người"
+        with mock.patch("llm_steps.call_model", return_value=reply(EMPTY_JSON)):
+            profile = llm_steps.extract_profile(chat)
+        self.assertEqual([m["name"] for m in profile["members"]], ["Mai", "Tuấn", "Lan Anh"])
+        self.assertEqual(profile["members"][0]["quotes"], ["Mai: gì cũng được", "Mai: nhanh nha"])
+        self.assertEqual((profile["members"][1]["vegetarian"], profile["members"][1]["allergens"],
+                          profile["members"][1]["preferences"]), (False, {}, []))
+
+    def test_fallback_skips_lines_that_are_not_names(self):
+        chat = "Mai: gì cũng được\n12h: đặt sớm nha\nhttps://quan.vn/menu\nTuấn: ok"
+        with mock.patch("llm_steps.call_model", return_value=reply(EMPTY_JSON)):
+            profile = llm_steps.extract_profile(chat)
+        self.assertEqual([m["name"] for m in profile["members"]], ["Mai", "Tuấn"])
+
+    def test_model_members_are_kept_without_fallback(self):
+        chat = "An: mình ăn chay\nBình: dị ứng đậu phộng\nChi: gì cũng được"
+        with mock.patch("llm_steps.call_model", return_value=reply(PROFILE_JSON)):
+            profile = llm_steps.extract_profile(chat)
+        self.assertEqual([m["name"] for m in profile["members"]], ["An", "Bình"])

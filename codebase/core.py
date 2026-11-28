@@ -382,11 +382,26 @@ def _infeasible(session, summary):
     return session
 
 
+def _preference_hits(members, store_id):
+    """Số người có ít nhất một sở thích khớp món của quán: tên món nằm trong lời dặn, lời dặn nằm trong tên món,
+    hoặc chữ đầu của tên món ("bún", "phở", "cơm") là một từ trong lời dặn."""
+    names = [d["name"].casefold() for d in tools.load_menu(store_id).values()]
+    heads = {n.split()[0] for n in names if n.split()}
+
+    def hit(pref):
+        p = " ".join(str(pref).casefold().split())
+        return bool(p) and (any(n in p or p in n for n in names) or bool(heads & set(p.split())))
+
+    return sum(1 for m in members if any(hit(p) for p in m["preferences"]))
+
+
 def _choose_store(session, *, exclude=None):
-    """Kiểm khả thi trước, rồi ưu tiên quán chưa thử trong vòng hiện tại."""
+    """Kiểm khả thi ở mọi quán khác rồi ưu tiên quán chưa thử và sở thích nhóm."""
     profile = session["profile"]
     members, budget = profile["members"], profile["budget"]
-    ids = session["candidates"] or [s["id"] for s in tools.list_restaurants()]
+    known = {s["id"] for s in tools.list_restaurants()}
+    ids = session["candidates"] or sorted(known)
+    ids = [i for i in ids if i in known] or ids                 # bỏ mã quán ngoài dữ liệu nếu còn quán hợp lệ
     summaries = [tools.store_summary(i, members, budget, _shipping(session, i)) for i in ids if i != exclude]
     viable = [s for s in summaries if s["min_total"] is not None and s["min_total"] <= budget]
     if not viable:
@@ -398,6 +413,9 @@ def _choose_store(session, *, exclude=None):
         viable = untried
     else:
         session["tried"] = [exclude] if exclude else []
+    hits = {s["id"]: _preference_hits(members, s["id"]) for s in viable}
+    if max(hits.values()) > 0:
+        viable = [s for s in viable if hits[s["id"]] == max(hits.values())]
     if len(viable) == 1:
         return viable[0]["id"], None
     choice = llm_steps.choose_restaurant(profile, viable, session["tried"])
@@ -459,6 +477,15 @@ def _store_name(store_id):
     return next((s["name"] for s in tools.list_restaurants() if s["id"] == store_id), store_id)
 
 
+def _constraint_tags(m):
+    return (["ăn chay"] if m["vegetarian"] else []) + ["dị ứng " + v for v in m["allergens"].values()]
+
+
+def _with_constraints(m, name):
+    tags = _constraint_tags(m) if m else []
+    return "%s (%s)" % (name, ", ".join(tags)) if tags else name
+
+
 def _render_draft(profile):
     questions = open_questions(profile)
     if questions:
@@ -467,8 +494,9 @@ def _render_draft(profile):
         return llm_steps.BUDGET_QUESTION
     rows = ["Hồ sơ nháp, quỹ %s:" % _vnd(profile["budget"])]
     for m in profile["members"]:
-        tags = (["ăn chay"] if m["vegetarian"] else []) + ["dị ứng " + v for v in m["allergens"].values()]
-        rows.append("- %s: %s" % (m["name"], "; ".join(tags + m["preferences"]) or "không có lời dặn riêng"))
+        notes = "; ".join(_constraint_tags(m) + m["preferences"])
+        source = " (chat: %s)" % "; ".join('"%s"' % q for q in m["quotes"][:2]) if notes and m["quotes"] else ""
+        rows.append("- %s: %s%s" % (m["name"], notes or "không có lời dặn riêng", source))
     rows.append("Vui lòng xác nhận hồ sơ trước khi lập giỏ.")
     return "\n".join(rows)
 
@@ -486,9 +514,14 @@ def render(session):
     store = _store_name(session["store_id"])
     if session["status"] == "CART_INFEASIBLE":
         inf = session["infeasible"]
-        if inf["kind"] == "NO_SAFE_ITEM":
+        if session["store_id"] not in {s["id"] for s in tools.list_restaurants()}:
+            out.append("Chưa lập được giỏ: quán %s không có trong dữ liệu quán mẫu. "
+                       "Hãy chọn quán trong danh sách quán của hệ thống." % session["store_id"])
+        elif inf["kind"] == "NO_SAFE_ITEM":
+            by_name = {m["name"]: m for m in profile["members"]}
             out.append("Chưa lập được giỏ ở %s (%s): không có món phù hợp cho %s. Đề xuất đổi sang quán khác."
-                       % (store, session["store_id"], ", ".join(inf["members"])))
+                       % (store, session["store_id"], ", ".join(_with_constraints(by_name.get(n), n)
+                                                                for n in inf["members"])))
         else:
             out.append("Chưa lập được giỏ ở %s (%s): tối thiểu %s gồm phí ship, quỹ %s, thiếu %s. "
                        "Đề xuất tăng quỹ lên %s hoặc đổi quán."

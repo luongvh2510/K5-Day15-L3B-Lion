@@ -166,7 +166,8 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(self.request('POST', path + '/actions', lower)[0], 200)
         _, before = self.request('POST', path + '/actions', change)
         self.assertEqual(before['restaurant']['id'], 'store_08')
-        self.assertIn('61,000đ', before['messages'][-1]['text'])
+        min_total = api.tools.load_menu('store_09')['dish_090']['price'] + api.tools.shipping_fee('store_09')
+        self.assertIn(f'{min_total:,}đ', before['messages'][-1]['text'])
         self.assertIn('giữ giỏ', before['messages'][-1]['text'])
         self.assertIn('store_09', api.store.load(sid)['tried'])
 
@@ -227,10 +228,10 @@ class TestAPI(unittest.TestCase):
             {'name': 'Hà', 'vegetarian': False, 'allergens': {'crustacean': 'tôm cua'},
              'preferences': [], 'quotes': []},
         ]
-        profile = {'budget': 115000, 'members': members, 'questions': []}
+        profile = {'budget': 120000, 'members': members, 'questions': []}
         steps = api.core.llm_steps
         with mock.patch.object(steps, 'extract_profile', return_value=profile):
-            _, draft = self.request('POST', '/sessions', {'chat_text': 'Quỹ 115k, An ăn chay, Hà dị ứng tôm cua'})
+            _, draft = self.request('POST', '/sessions', {'chat_text': 'Quỹ 120k, An ăn chay, Hà dị ứng tôm cua'})
         path = '/sessions/' + draft['session_id']
         picks = [{'member': 'An', 'item_id': 'dish_090'}, {'member': 'Hà', 'item_id': 'dish_084'}]
         with mock.patch.object(steps, 'choose_restaurant', return_value={'store_id': 'store_09'}), \
@@ -252,7 +253,7 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(cart['lines'][0], before['cart']['lines'][0])
         self.assertEqual(cart['lines'][1]['menu_item_id'], 'dish_081')
         self.assertEqual((cart['subtotal'], cart['shipping_fee'], cart['total'], cart['remaining']),
-                         (98000, 15000, 113000, 2000))
+                         (98000, 20000, 118000, 2000))
         self.assertEqual(swapped['members'], before['members'])
 
         for text, member, detail, intent, kind, message in [
