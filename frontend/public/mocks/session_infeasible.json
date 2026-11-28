@@ -1,0 +1,148 @@
+{
+  "session_id": "3a835f68",
+  "status": "CART_INFEASIBLE",
+  "restaurant": {
+    "id": "store_08",
+    "name": "Xôi Nếp Ban Mai",
+    "menu_type": "xoi",
+    "summary": "Xôi nếp ăn sáng, có xôi mặn với gà, xá xíu, chả lụa và xôi bắp, lạc, đậu cho khách thích vị bùi.",
+    "distance_km": 0.9,
+    "shipping_fee": 15000
+  },
+  "budget": 100000,
+  "chat_lines": [],
+  "members": [
+    {
+      "id": "m1",
+      "name": "Chi",
+      "origin": "CHAT",
+      "hard_constraints": [],
+      "preferences": [],
+      "flags": [],
+      "quotes": [
+        "Chi: 12h đặt cơm trưa nha mn, quỹ chung 100k nhé"
+      ]
+    },
+    {
+      "id": "m2",
+      "name": "An",
+      "origin": "CHAT",
+      "hard_constraints": [
+        {
+          "id": "m2-vegetarian",
+          "type": "VEGETARIAN",
+          "allergen": null,
+          "note": null,
+          "source": {
+            "kind": "CHAT",
+            "line": null,
+            "quote": null
+          },
+          "locked": true
+        }
+      ],
+      "preferences": [],
+      "flags": [],
+      "quotes": [
+        "An: t ăn chay nha, nhớ đó",
+        "An: mình ăn chay thôi"
+      ]
+    },
+    {
+      "id": "m3",
+      "name": "Bình",
+      "origin": "CHAT",
+      "hard_constraints": [
+        {
+          "id": "m3-peanut",
+          "type": "ALLERGY",
+          "allergen": "PEANUT",
+          "note": null,
+          "source": {
+            "kind": "CHAT",
+            "line": null,
+            "quote": null
+          },
+          "locked": true
+        }
+      ],
+      "preferences": [],
+      "flags": [],
+      "quotes": [
+        "Bình: mình dị ứng đậu phộng nặng lắm, đừng có gì dính đậu phộng nha"
+      ]
+    },
+    {
+      "id": "m4",
+      "name": "Dũng",
+      "origin": "CHAT",
+      "hard_constraints": [],
+      "preferences": [],
+      "flags": [],
+      "quotes": [
+        "Dũng: gì cũng được, nhanh lên đói rồi 😭"
+      ]
+    },
+    {
+      "id": "m5",
+      "name": "Hà",
+      "origin": "CHAT",
+      "hard_constraints": [],
+      "preferences": [
+        {
+          "id": "m5-p1",
+          "text": "muốn ăn bún",
+          "source": {
+            "kind": "CHAT",
+            "line": null,
+            "quote": null
+          }
+        }
+      ],
+      "flags": [],
+      "quotes": [
+        "Hà: mình muốn ăn bún"
+      ]
+    }
+  ],
+  "questions": [],
+  "can_confirm": false,
+  "messages": [
+    {
+      "role": "user",
+      "kind": "TEXT",
+      "text": "Chi\n12h đặt cơm trưa nha mn, quỹ chung 100k nhé\nAn\nt ăn chay nha, nhớ đó\nBình\nmình dị ứng đậu phộng nặng lắm, đừng có gì dính đậu phộng nha\nDũng\ngì cũng được, nhanh lên đói rồi 😭\nAn\nmình ăn chay thôi\nHà\nmình muốn ăn bún",
+      "turn": 0,
+      "id": "msg1",
+      "created_at": "2026-11-27T18:11:18.479400Z",
+      "question_id": null
+    }
+  ],
+  "cart": null,
+  "validation": null,
+  "infeasible": {
+    "kind": "OVER_BUDGET",
+    "members_without_option": [],
+    "min_total": 120000,
+    "shortfall": 20000,
+    "message": "Chưa lập được giỏ ở Xôi Nếp Ban Mai (store_08): tối thiểu 120,000đ gồm phí ship, quỹ 100,000đ, thiếu 20,000đ. Đề xuất tăng quỹ lên 120,000đ hoặc đổi quán.",
+    "options": [
+      {
+        "id": "budget",
+        "label": "Tăng quỹ lên 120,000đ",
+        "action": {
+          "type": "SET_BUDGET",
+          "budget": 120000
+        }
+      },
+      {
+        "id": "restaurant",
+        "label": "Đổi quán",
+        "action": {
+          "type": "CHANGE_RESTAURANT"
+        }
+      }
+    ]
+  },
+  "final_message": null
+}
