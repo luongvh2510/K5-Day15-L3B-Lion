@@ -1,6 +1,8 @@
 import { useState } from "react";
 import type { MouseEventHandler, ReactNode, Ref } from "react";
-import type { SessionState } from "./session";
+import { api } from "./api";
+import MenuModal from "./MenuModal";
+import type { Menu, SessionState } from "./session";
 
 const money = (value: number) => value.toLocaleString("vi-VN") + "đ";
 const EXCLUDED_PREVIEW_COUNT = 3;
@@ -11,15 +13,17 @@ type CartViewProps = {
   headingRef: Ref<HTMLHeadingElement>;
   lockedProfile: ReactNode;
   feedback: ReactNode;
+  returnRestaurantAction: ReactNode;
   onReopen: MouseEventHandler<HTMLButtonElement>;
   onChangeRestaurant: () => void;
   onFinalize: () => void;
 };
 
 export default function CartView({
-  session, busy, headingRef, lockedProfile, feedback, onReopen, onChangeRestaurant, onFinalize,
+  session, busy, headingRef, lockedProfile, feedback, returnRestaurantAction, onReopen, onChangeRestaurant, onFinalize,
 }: CartViewProps) {
   const [showAllExcluded, setShowAllExcluded] = useState(false);
+  const [menuRequest, setMenuRequest] = useState<{ id: string; result: Promise<Menu> } | null>(null);
   const { cart, restaurant, validation } = session;
   const memberNames = new Map(session.members.map(({ id, name }) => [id, name]));
   const excluded = cart?.excluded ?? [];
@@ -27,11 +31,13 @@ export default function CartView({
 
   return (
     <div className="cart-view">
+      <button className="button button--plain profile-back-action" type="button" aria-haspopup="dialog"
+        disabled={busy} onClick={onReopen}>← Quay lại sửa hồ sơ</button>
       <h2 className="order-panel-title" ref={headingRef} tabIndex={-1}>Giỏ hàng</h2>
 
       {restaurant && (
         <section className="restaurant-card" aria-labelledby="restaurant-heading">
-          <div>
+          <div className="restaurant-info">
             <h3 id="restaurant-heading">{restaurant.name}</h3>
             <p className="restaurant-meta">
               <span>{restaurant.distance_km.toLocaleString("vi-VN")} km</span>
@@ -39,9 +45,18 @@ export default function CartView({
             </p>
             <p>{restaurant.summary}</p>
           </div>
-          <button className="button button--example" type="button" disabled={busy} onClick={onChangeRestaurant}>
-            Đổi quán
-          </button>
+          <div className="restaurant-actions">
+            <button className="button button--example" type="button" disabled={busy}
+              aria-haspopup="dialog" onClick={(event) => {
+                event.currentTarget.focus({ preventScroll: true });
+                setMenuRequest({ id: restaurant.id, result: api.menu(restaurant.id) });
+              }}>
+              Xem menu quán
+            </button>
+            <button className="button button--example" type="button" disabled={busy} onClick={onChangeRestaurant}>
+              Đổi quán
+            </button>
+          </div>
         </section>
       )}
 
@@ -63,7 +78,8 @@ export default function CartView({
                   <strong className="line-price">{money(line.unit_price)}</strong>
                 </div>
                 <p className="line-dish">{line.name} {line.qty != null && <span className="line-quantity">× {line.qty}</span>}</p>
-                {line.reason && <p className="line-reason">{line.reason}</p>}
+                {line.reason?.trim() && line.reason.trim().toLowerCase() !== "món an toàn rẻ nhất"
+                  && <p className="line-reason">{line.reason}</p>}
               </li>
             ))}
           </ul>
@@ -107,11 +123,15 @@ export default function CartView({
       {lockedProfile}
       {feedback}
       <div className="composer-actions">
-        <button className="button button--example" type="button" disabled={busy} onClick={onReopen}>Sửa hồ sơ</button>
+        {returnRestaurantAction}
         {cart && validation?.ok === true && (
           <button className="button button--primary" type="button" disabled={busy} onClick={onFinalize}>Chốt giỏ</button>
         )}
       </div>
+      {restaurant && menuRequest?.id === restaurant.id && (
+        <MenuModal restaurant={restaurant} initialRequest={menuRequest.result}
+          onClose={() => setMenuRequest(null)} />
+      )}
     </div>
   );
 }

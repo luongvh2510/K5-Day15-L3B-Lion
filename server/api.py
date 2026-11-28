@@ -143,7 +143,8 @@ def dispatch(method, path, body):
     if method == 'GET' and parts == ['restaurants']:
         return [restaurant(x['id']) for x in tools.list_restaurants()]
     if method == 'GET' and len(parts) == 3 and parts[0] == 'restaurants' and parts[2] == 'menu':
-        return {'restaurant': restaurant(parts[1]), 'items': [{'id': k, **v} for k, v in tools.load_menu(parts[1]).items()]}
+        return {'restaurant': restaurant(parts[1]),
+                'items': [{'id': k, **v} for k, v in tools.load_menu(parts[1]).items() if v['available']]}
     if method == 'POST' and parts == ['debug', 'validate-cart']:
         try:
             rid = body['store_id']; restaurant(rid)
@@ -199,15 +200,16 @@ def dispatch(method, path, body):
                     change = body.get('action')
                     if not isinstance(change, dict):
                         fail(400, 'INVALID_INPUT', 'Thiếu hành động hợp lệ.')
+                    core.new_turn(session)
                     if change.get('type') == 'SET_BUDGET':
                         amount = change.get('budget')
                         if type(amount) is not int or amount <= 0:
                             fail(400, 'INVALID_INPUT', 'Quỹ phải là số nguyên dương.')
                         core.set_budget(session, amount)
-                    elif change.get('type') == 'CHANGE_RESTAURANT':
+                    elif change.get('type') in ('CHANGE_RESTAURANT', 'SELECT_RESTAURANT'):
                         rid = change.get('restaurant_id')
-                        if rid is not None:
-                            if not isinstance(rid, str):
+                        if rid is not None or change['type'] == 'SELECT_RESTAURANT':
+                            if not isinstance(rid, str) or not rid.strip():
                                 fail(400, 'INVALID_INPUT', 'Mã quán không hợp lệ.')
                             restaurant(rid)
                         core.change_restaurant(session, rid)

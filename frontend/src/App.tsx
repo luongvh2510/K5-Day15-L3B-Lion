@@ -7,7 +7,7 @@ import ConfirmModal from "./ConfirmModal";
 import FinalizedView from "./FinalizedView";
 import InfeasibleView from "./InfeasibleView";
 import ProfileDraft from "./ProfileDraft";
-import type { Action, MemberInput, SessionState } from "./session";
+import type { Action, MemberInput, Restaurant, SessionState } from "./session";
 
 type Work = {
   kind: "create" | "restore" | "message" | "budget" | "edit" | "confirm" | "reopen" | "action" | "finalize";
@@ -18,8 +18,10 @@ type Work = {
 };
 
 type Failure = { kind: Work["kind"]; message: string; editMemberName?: string | null; retry?: Work };
+type VisitedRestaurant = Pick<Restaurant, "id" | "name">;
 
 const SESSION_KEY = "lion_session_id";
+const RESTAURANT_HISTORY_KEY = "lion_restaurant_history";
 const RESTORE_MESSAGE = "Đang khôi phục phiên…";
 const NETWORK_MESSAGE = "Không kết nối được máy chủ. Kiểm tra backend đã chạy chưa.";
 const CHAT_LIMIT = 4000;
@@ -50,6 +52,17 @@ function readSavedSession() {
   }
 }
 
+function readRestaurantHistory(sessionId: string | null): VisitedRestaurant[] {
+  if (!sessionId) return [];
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(RESTAURANT_HISTORY_KEY) ?? "null");
+    if (saved?.sessionId === sessionId && Array.isArray(saved.visits)) return saved.visits;
+  } catch {
+    // Trình duyệt có thể chặn sessionStorage.
+  }
+  return [];
+}
+
 export default function App() {
   const [chatText, setChatText] = useState("");
   const [reply, setReply] = useState("");
@@ -58,6 +71,7 @@ export default function App() {
   const [showErrors, setShowErrors] = useState(false);
   const [initialSessionId] = useState(readSavedSession);
   const [session, setSession] = useState<SessionState | null>(null);
+  const [visitedRestaurants, setVisitedRestaurants] = useState(() => readRestaurantHistory(initialSessionId));
   const [pending, setPending] = useState<Work["kind"] | null>(initialSessionId ? "restore" : null);
   const [failure, setFailure] = useState<Failure | null>(null);
   const [storageBlocked, setStorageBlocked] = useState(false);
@@ -77,9 +91,13 @@ export default function App() {
   const isCartStage = sessionStatus === "CART_VALID" || sessionStatus === "CART_INFEASIBLE";
   const canEditBudget = sessionStatus === "PROFILE_DRAFT";
   const isBudgetEditorOpen = canEditBudget && budgetDraft !== null;
+  const lastVisited = visitedRestaurants.at(-1);
+  const previousRestaurant = lastVisited?.id === session?.restaurant?.id
+    ? visitedRestaurants.at(-2) : lastVisited;
 
   const resetOrder = useCallback(() => {
     setSession(null);
+    setVisitedRestaurants([]);
     setReply("");
     setChatText("");
     setBudgetDraft(null);
@@ -87,6 +105,11 @@ export default function App() {
     setShowErrors(false);
     setFailure(null);
     clearMockSession();
+    try {
+      sessionStorage.removeItem(RESTAURANT_HISTORY_KEY);
+    } catch {
+      // Lịch sử trong bộ nhớ đã được xóa.
+    }
     try {
       localStorage.removeItem(SESSION_KEY);
       setStorageBlocked(false);
@@ -119,6 +142,14 @@ export default function App() {
       }
 
       setSession(next);
+      const restaurant = next.restaurant;
+      if (next.status === "PROFILE_DRAFT") {
+        setVisitedRestaurants([]);
+      } else if (restaurant) {
+        const { id, name } = restaurant;
+        setVisitedRestaurants((visits) => visits.at(-1)?.id === id
+          ? visits : [...visits.filter((visit) => visit.id !== id), { id, name }]);
+      }
       try {
         localStorage.setItem(SESSION_KEY, next.session_id);
         setStorageBlocked(false);
@@ -154,6 +185,17 @@ export default function App() {
       void run({ kind: "restore", sessionId: initialSessionId, request: () => api.getSession(initialSessionId) });
     }
   }, [initialSessionId, run]);
+
+  useEffect(() => {
+    if (!session) return;
+    try {
+      sessionStorage.setItem(RESTAURANT_HISTORY_KEY, JSON.stringify({
+        sessionId: session.session_id, visits: visitedRestaurants,
+      }));
+    } catch {
+      // Lịch sử vẫn dùng được trong bộ nhớ.
+    }
+  }, [session, visitedRestaurants]);
 
   useEffect(() => {
     if (sessionStatus !== "PROFILE_DRAFT") setBudgetDraft(null);
@@ -312,6 +354,12 @@ export default function App() {
       </fieldset>
     </form>
   );
+  const returnRestaurantAction = previousRestaurant && (
+    <button className="button button--example" type="button" disabled={isLoading}
+      onClick={() => changeCart({ type: "SELECT_RESTAURANT", restaurant_id: previousRestaurant.id })}>
+      Quay lại quán trước ({previousRestaurant.name})
+    </button>
+  );
   const lockedProfile = session && isCartStage ? (
     <details className="locked-profiles">
       <summary>Xem hồ sơ đã khóa</summary>
@@ -323,7 +371,7 @@ export default function App() {
   return (
     <>
       <header className="site-header">
-        <div className={`header-content${session ? " session-width" : ""}`}>
+        <div className={`header-content${session ? " header-content--session session-width" : ""}`}>
           <div className="brand">
             <span className="brand-icon" aria-hidden="true">L</span>
             <div>
@@ -335,10 +383,20 @@ export default function App() {
             </div>
           </div>
           {session && (
-            <div className="header-actions">
-              <button className="button button--example" type="button" disabled={isLoading}
-                onClick={startNewOrder}>Làm đơn mới</button>
-            </div>
+            <>
+              <div className="budget-control">
+                <div className="budget-display">
+                  <span>{session.status === "FINALIZED" ? "Quỹ chung (còn lại)" : "Quỹ chung"}</span>
+                  <strong>{session.budget === null ? "Chưa xác định" : formatNumber(session.budget) + "đ"}</strong>
+                </div>
+                {canEditBudget && budgetAction}
+              </div>
+              <div className="header-actions">
+                <button className="button button--example" type="button" disabled={isLoading}
+                  onClick={startNewOrder}>Làm đơn mới</button>
+              </div>
+              {budgetEditor}
+            </>
           )}
         </div>
       </header>
@@ -358,7 +416,6 @@ export default function App() {
               {session.status === "PROFILE_DRAFT" ? (
                 <>
                   <ProfileDraft session={session} busy={isLoading} onEdit={editMembers} headingRef={draftHeading}
-                    budgetAction={budgetAction} budgetEditor={budgetEditor}
                     editFeedback={failure?.kind === "edit"
                       ? { memberName: failure.editMemberName ?? null, content: failureFeedback } : undefined}
                     openMemberIds={openMemberIds} />
@@ -381,12 +438,12 @@ export default function App() {
                 </>
               ) : session.status === "CART_VALID" ? (
                 <CartView session={session} busy={isLoading} headingRef={draftHeading}
-                  lockedProfile={lockedProfile} feedback={cartFeedback}
+                  lockedProfile={lockedProfile} feedback={cartFeedback} returnRestaurantAction={returnRestaurantAction}
                   onReopen={askToReopenProfile} onChangeRestaurant={() => changeCart({ type: "CHANGE_RESTAURANT" })}
                   onFinalize={finalizeCart} />
               ) : (
                 <InfeasibleView session={session} busy={isLoading} headingRef={draftHeading}
-                  lockedProfile={lockedProfile} feedback={cartFeedback}
+                  lockedProfile={lockedProfile} feedback={cartFeedback} returnRestaurantAction={returnRestaurantAction}
                   onAction={changeCart} onReopen={askToReopenProfile} />
               )}
             </section>

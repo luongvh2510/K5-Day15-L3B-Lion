@@ -22,13 +22,15 @@ export type Restaurant = {
   shipping_fee: number;
 };
 
+export type MenuAllergen = Lowercase<Allergen>;
+
 export type MenuItem = {
   id: string;
   name: string;
   price: number;
   ingredients: string[];
-  allergens: Lowercase<Allergen>[];
-  allergen_sources: Partial<Record<Lowercase<Allergen>, string[]>>;
+  allergens: MenuAllergen[];
+  allergen_sources: Partial<Record<MenuAllergen, string[]>>;
   animal_ingredients: string[];
   vegetarian: boolean;
   available: boolean;
@@ -129,7 +131,8 @@ export type ValidationResult = {
 
 export type Action =
   | { type: "SET_BUDGET"; budget: number }
-  | { type: "CHANGE_RESTAURANT"; restaurant_id?: string };
+  | { type: "CHANGE_RESTAURANT"; restaurant_id?: string }
+  | { type: "SELECT_RESTAURANT"; restaurant_id: string };
 
 export type InfeasibleOption = {
   id: "budget" | "restaurant";
