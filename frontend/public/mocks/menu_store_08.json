@@ -1,0 +1,367 @@
+{
+  "restaurant": {
+    "id": "store_08",
+    "name": "Xôi Nếp Ban Mai",
+    "menu_type": "xoi",
+    "summary": "Xôi nếp ăn sáng, có xôi mặn với gà, xá xíu, chả lụa và xôi bắp, lạc, đậu cho khách thích vị bùi.",
+    "distance_km": 0.9,
+    "shipping_fee": 15000
+  },
+  "items": [
+    {
+      "id": "dish_071",
+      "name": "Xôi gà xé",
+      "price": 35000,
+      "ingredients": [
+        "sticky_rice",
+        "chicken_breast",
+        "scallion",
+        "garlic",
+        "shallot",
+        "salt",
+        "fish_sauce",
+        "soy_sauce",
+        "sugar",
+        "black_pepper",
+        "canola_oil",
+        "water"
+      ],
+      "allergens": [
+        "fish",
+        "soy",
+        "wheat"
+      ],
+      "allergen_sources": {
+        "fish": [
+          "Nước mắm cá cơm và muối"
+        ],
+        "soy": [
+          "Nước tương lên men từ đậu nành và lúa mì"
+        ],
+        "wheat": [
+          "Nước tương lên men từ đậu nành và lúa mì"
+        ]
+      },
+      "animal_ingredients": [
+        "Ức gà",
+        "Nước mắm cá cơm và muối"
+      ],
+      "vegetarian": false,
+      "available": true,
+      "ingredients_known": true
+    },
+    {
+      "id": "dish_072",
+      "name": "Xôi xá xíu",
+      "price": 38000,
+      "ingredients": [
+        "sticky_rice",
+        "red_yeast_rice",
+        "pork_shoulder",
+        "scallion",
+        "garlic",
+        "shallot",
+        "cucumber",
+        "salt",
+        "soy_sauce",
+        "oyster_sauce",
+        "honey",
+        "sugar",
+        "five_spice",
+        "sesame_oil",
+        "canola_oil",
+        "water"
+      ],
+      "allergens": [
+        "mollusc",
+        "sesame",
+        "soy",
+        "wheat"
+      ],
+      "allergen_sources": {
+        "soy": [
+          "Nước tương lên men từ đậu nành và lúa mì"
+        ],
+        "wheat": [
+          "Nước tương lên men từ đậu nành và lúa mì",
+          "Dầu hào từ chiết xuất hàu và có bột mì"
+        ],
+        "mollusc": [
+          "Dầu hào từ chiết xuất hàu và có bột mì"
+        ],
+        "sesame": [
+          "Dầu mè rang"
+        ]
+      },
+      "animal_ingredients": [
+        "Thịt vai lợn",
+        "Dầu hào từ chiết xuất hàu và có bột mì"
+      ],
+      "vegetarian": false,
+      "available": true,
+      "ingredients_known": true
+    },
+    {
+      "id": "dish_073",
+      "name": "Xôi mặn lạp xưởng tôm khô",
+      "price": 39000,
+      "ingredients": [
+        "sticky_rice",
+        "ground_pork",
+        "pork_fat",
+        "pig_casing",
+        "dried_shrimp",
+        "quail_egg",
+        "scallion",
+        "shallot",
+        "salt",
+        "sugar",
+        "rice_wine",
+        "soy_sauce",
+        "black_pepper",
+        "fish_sauce",
+        "canola_oil",
+        "water"
+      ],
+      "allergens": [
+        "crustacean",
+        "egg",
+        "fish",
+        "soy",
+        "wheat"
+      ],
+      "allergen_sources": {
+        "crustacean": [
+          "Tôm khô"
+        ],
+        "egg": [
+          "Trứng cút"
+        ],
+        "soy": [
+          "Nước tương lên men từ đậu nành và lúa mì"
+        ],
+        "wheat": [
+          "Nước tương lên men từ đậu nành và lúa mì"
+        ],
+        "fish": [
+          "Nước mắm cá cơm và muối"
+        ]
+      },
+      "animal_ingredients": [
+        "Thịt lợn xay",
+        "Mỡ heo",
+        "Vỏ lạp xưởng từ ruột non heo",
+        "Tôm khô",
+        "Trứng cút",
+        "Nước mắm cá cơm và muối"
+      ],
+      "vegetarian": false,
+      "available": true,
+      "ingredients_known": true
+    },
+    {
+      "id": "dish_074",
+      "name": "Xôi patê",
+      "price": 27000,
+      "ingredients": [
+        "sticky_rice",
+        "wheat_bread",
+        "pork_liver",
+        "pork_belly",
+        "pork_fat",
+        "whole_milk",
+        "butter",
+        "onion",
+        "shallot",
+        "garlic",
+        "salt",
+        "sugar",
+        "black_pepper",
+        "fish_sauce",
+        "canola_oil",
+        "water"
+      ],
+      "allergens": [
+        "fish",
+        "milk",
+        "wheat"
+      ],
+      "allergen_sources": {
+        "wheat": [
+          "Bánh mì ổ từ bột mì, nước, men và muối"
+        ],
+        "milk": [
+          "Sữa bò tươi nguyên kem",
+          "Bơ lạt từ sữa bò"
+        ],
+        "fish": [
+          "Nước mắm cá cơm và muối"
+        ]
+      },
+      "animal_ingredients": [
+        "Gan heo",
+        "Thịt ba chỉ heo",
+        "Mỡ heo",
+        "Sữa bò tươi nguyên kem",
+        "Bơ lạt từ sữa bò",
+        "Nước mắm cá cơm và muối"
+      ],
+      "vegetarian": false,
+      "available": true,
+      "ingredients_known": true
+    },
+    {
+      "id": "dish_075",
+      "name": "Xôi chả lụa",
+      "price": 30000,
+      "ingredients": [
+        "sticky_rice",
+        "tapioca_starch",
+        "ground_pork",
+        "pork_fat",
+        "scallion",
+        "shallot",
+        "salt",
+        "fish_sauce",
+        "sugar",
+        "white_pepper",
+        "canola_oil",
+        "water"
+      ],
+      "allergens": [
+        "fish"
+      ],
+      "allergen_sources": {
+        "fish": [
+          "Nước mắm cá cơm và muối"
+        ]
+      },
+      "animal_ingredients": [
+        "Thịt lợn xay",
+        "Mỡ heo",
+        "Nước mắm cá cơm và muối"
+      ],
+      "vegetarian": false,
+      "available": true,
+      "ingredients_known": true
+    },
+    {
+      "id": "dish_076",
+      "name": "Xôi xéo",
+      "price": 24000,
+      "ingredients": [
+        "sticky_rice",
+        "pork_fat",
+        "mung_bean",
+        "turmeric",
+        "shallot",
+        "salt",
+        "water"
+      ],
+      "allergens": [],
+      "allergen_sources": {},
+      "animal_ingredients": [
+        "Mỡ heo"
+      ],
+      "vegetarian": false,
+      "available": true,
+      "ingredients_known": true
+    },
+    {
+      "id": "dish_077",
+      "name": "Xôi đậu xanh",
+      "price": 21000,
+      "ingredients": [
+        "sticky_rice",
+        "mung_bean",
+        "coconut_milk",
+        "salt",
+        "sugar",
+        "water"
+      ],
+      "allergens": [],
+      "allergen_sources": {},
+      "animal_ingredients": [],
+      "vegetarian": true,
+      "available": true,
+      "ingredients_known": true
+    },
+    {
+      "id": "dish_078",
+      "name": "Xôi lạc",
+      "price": 22000,
+      "ingredients": [
+        "sticky_rice",
+        "raw_peanut",
+        "sesame_seed",
+        "salt",
+        "sugar",
+        "water"
+      ],
+      "allergens": [
+        "peanut",
+        "sesame"
+      ],
+      "allergen_sources": {
+        "peanut": [
+          "Đậu phộng hạt sống"
+        ],
+        "sesame": [
+          "Hạt mè trắng"
+        ]
+      },
+      "animal_ingredients": [],
+      "vegetarian": true,
+      "available": true,
+      "ingredients_known": true
+    },
+    {
+      "id": "dish_079",
+      "name": "Xôi bắp",
+      "price": 23000,
+      "ingredients": [
+        "sticky_rice",
+        "waxy_corn",
+        "pork_fat",
+        "mung_bean",
+        "shallot",
+        "salt",
+        "water"
+      ],
+      "allergens": [],
+      "allergen_sources": {},
+      "animal_ingredients": [
+        "Mỡ heo"
+      ],
+      "vegetarian": false,
+      "available": true,
+      "ingredients_known": true
+    },
+    {
+      "id": "dish_080",
+      "name": "Xôi đậu đen",
+      "price": 23000,
+      "ingredients": [
+        "sticky_rice",
+        "black_bean",
+        "sesame_seed",
+        "coconut_milk",
+        "salt",
+        "sugar",
+        "water"
+      ],
+      "allergens": [
+        "sesame"
+      ],
+      "allergen_sources": {
+        "sesame": [
+          "Hạt mè trắng"
+        ]
+      },
+      "animal_ingredients": [],
+      "vegetarian": true,
+      "available": true,
+      "ingredients_known": true
+    }
+  ]
+}

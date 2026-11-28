@@ -1,0 +1,131 @@
+{
+  "session_id": "b6dd6873",
+  "status": "PROFILE_DRAFT",
+  "restaurant": null,
+  "budget": 300000,
+  "chat_lines": [],
+  "members": [
+    {
+      "id": "m1",
+      "name": "Chi",
+      "origin": "CHAT",
+      "hard_constraints": [],
+      "preferences": [],
+      "flags": [],
+      "quotes": []
+    },
+    {
+      "id": "m2",
+      "name": "An",
+      "origin": "CHAT",
+      "hard_constraints": [
+        {
+          "id": "m2-vegetarian",
+          "type": "VEGETARIAN",
+          "allergen": null,
+          "note": null,
+          "source": {
+            "kind": "CHAT",
+            "line": null,
+            "quote": null
+          },
+          "locked": false
+        }
+      ],
+      "preferences": [],
+      "flags": [],
+      "quotes": [
+        "An: t ăn chay nha, nhớ đó",
+        "An: à lấy thêm 1 cơm gà nha"
+      ]
+    },
+    {
+      "id": "m3",
+      "name": "Bình",
+      "origin": "CHAT",
+      "hard_constraints": [
+        {
+          "id": "m3-peanut",
+          "type": "ALLERGY",
+          "allergen": "PEANUT",
+          "note": null,
+          "source": {
+            "kind": "CHAT",
+            "line": null,
+            "quote": null
+          },
+          "locked": false
+        }
+      ],
+      "preferences": [],
+      "flags": [],
+      "quotes": [
+        "Bình: mình dị ứng đậu phộng nặng lắm, đừng có gì dính đậu phộng nha"
+      ]
+    },
+    {
+      "id": "m4",
+      "name": "Dũng",
+      "origin": "CHAT",
+      "hard_constraints": [],
+      "preferences": [],
+      "flags": [],
+      "quotes": []
+    },
+    {
+      "id": "m5",
+      "name": "Hà",
+      "origin": "CHAT",
+      "hard_constraints": [],
+      "preferences": [
+        {
+          "id": "m5-p1",
+          "text": "muốn ăn bún",
+          "source": {
+            "kind": "CHAT",
+            "line": null,
+            "quote": null
+          }
+        }
+      ],
+      "flags": [],
+      "quotes": [
+        "Hà: mình muốn ăn bún"
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "q1",
+      "member_id": "m2",
+      "text": "An ơi, bạn nói ăn chay nhưng lại xin thêm cơm gà, món gà đó cho bạn hay cho ai?",
+      "options": [],
+      "status": "OPEN"
+    }
+  ],
+  "can_confirm": false,
+  "messages": [
+    {
+      "role": "user",
+      "kind": "TEXT",
+      "text": "Chi\n12h đặt cơm trưa nha mn, quỹ chung 300k nhé\nAn\nt ăn chay nha, nhớ đó\nBình\nmình dị ứng đậu phộng nặng lắm, đừng có gì dính đậu phộng nha\nDũng\ngì cũng được, nhanh lên đói rồi 😭\nAn\nà lấy thêm 1 cơm gà nha\nHà\nmình muốn ăn bún",
+      "turn": 0,
+      "id": "msg1",
+      "created_at": "2026-11-27T18:10:40.010185Z",
+      "question_id": null
+    },
+    {
+      "role": "assistant",
+      "kind": "QUESTION",
+      "text": "An ơi, bạn nói ăn chay nhưng lại xin thêm cơm gà, món gà đó cho bạn hay cho ai?",
+      "turn": 0,
+      "id": "msg2",
+      "created_at": "2026-11-27T18:10:40.010199Z",
+      "question_id": null
+    }
+  ],
+  "cart": null,
+  "validation": null,
+  "infeasible": null,
+  "final_message": null
+}
