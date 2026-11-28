@@ -22,4 +22,4 @@ Kiểm thử: `python3 -m unittest discover -s tests -v`.
 
 ## Dùng AI vào việc gì
 
-Codex hỗ trợ viết khung CP2, soạn câu hỏi và benchmark, tổng hợp số liệu khảo sát và cập nhật tài liệu. Hai agent chấm thử độc lập 5 output mô phỏng CP2. Điểm ba lượt đánh giá model thật do người chấm ghi. Xem [khai báo chi tiết](docs/ai-usage.md).
+Codex hỗ trợ viết khung CP2, soạn câu hỏi và benchmark, tổng hợp số liệu khảo sát và cập nhật tài liệu. Claude Code viết agent, prompt và các bản sửa lỗi giữa ba lượt đánh giá, đồng thời đề xuất điểm cột `pass`; Lương duyệt từng thay đổi và từng điểm trước khi commit. Xem [khai báo chi tiết](docs/ai-usage.md).
