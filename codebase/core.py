@@ -1,6 +1,8 @@
 """Bộ điều phối 2 phase của agent D2. Phiên lưu trong bộ nhớ (Dũng thay bằng DB sau)."""
 
 import copy
+import re
+import unicodedata
 import uuid
 
 import llm_steps
@@ -79,8 +81,8 @@ def _msg(session, kind, text, role="assistant"):
     session["messages"].append({"role": role, "kind": kind, "text": text, "turn": session.get("turn", 0)})
 
 
-def _new_turn(session):
-    """Mỗi thao tác của người dùng (send/confirm/finalize) là một lượt; render chỉ hiện tin của lượt hiện tại."""
+def new_turn(session):
+    """Bắt đầu một lượt để render chỉ hiện phản hồi của thao tác hiện tại."""
     session["turn"] = session.get("turn", 0) + 1
 
 
@@ -108,7 +110,7 @@ def start(chat_text, shipping=None, candidates=None, budget=None):
 
 def confirm(session):
     """Khoá ràng buộc và lập giỏ; chỉ khi can_confirm."""
-    _new_turn(session)
+    new_turn(session)
     if session["status"] != "PROFILE_DRAFT":
         return session
     if not can_confirm(session["profile"]):
@@ -137,10 +139,23 @@ def edit_profile(session, members):
 
 
 def set_budget(session, amount):
-    """Cập nhật quỹ rồi lập lại giỏ từ các ràng buộc đã khoá."""
-    if session["status"] in ("CART_VALID", "CART_INFEASIBLE") and type(amount) is int and amount > 0:
-        session["profile"]["budget"] = amount
-        return _plan_cart(session)
+    """Cập nhật quỹ, giữ giỏ còn trong quỹ hoặc lập lại từ hồ sơ đã khoá."""
+    if session["status"] not in ("CART_VALID", "CART_INFEASIBLE") or type(amount) is not int or amount <= 0:
+        return session
+    profile = session["profile"]
+    if amount > (profile["budget"] or 0):
+        session["tried"] = []
+    profile["budget"] = amount
+
+    cart = session["cart"]
+    if cart is not None and cart["total"] <= amount:
+        cart.update(budget=amount, remaining=amount - cart["total"])
+    else:
+        _plan_cart(session)
+        if session["status"] == "CART_INFEASIBLE":
+            session["store_id"] = None
+            _plan_cart(session)
+    _msg(session, "INFO", "Đã cập nhật quỹ chung thành %s." % _vnd(amount))
     return session
 
 
@@ -148,24 +163,32 @@ def change_restaurant(session, store_id=None):
     """Chọn quán khác hoặc lập giỏ tại quán được chỉ định."""
     if session["status"] not in ("CART_VALID", "CART_INFEASIBLE"):
         return session
-    if store_id is not None and store_id not in {r["id"] for r in tools.list_restaurants()}:
+    current = session["store_id"]
+    if store_id is None:
+        store_id, closest = _choose_store(session, exclude=current)
+        if store_id is None:
+            if closest is None:
+                detail = "Danh sách hiện tại không có quán khác."
+            elif closest["min_total"] is None:
+                detail = "Các quán khác thiếu món đáp ứng yêu cầu ăn chay hoặc dị ứng đã xác nhận."
+            else:
+                detail = "Quán khác rẻ nhất đáp ứng các ràng buộc cần ít nhất %s, gồm phí giao." % _vnd(closest["min_total"])
+            if session["status"] == "CART_VALID":
+                detail += " Mình giữ giỏ ở %s." % _store_name(current)
+            _msg(session, "INFO", detail)
+            return session
+    elif store_id not in {r["id"] for r in tools.list_restaurants()}:
         raise ValueError("Quán không tồn tại")
-    if session["store_id"] and session["store_id"] not in session["tried"]:
-        session["tried"].append(session["store_id"])
-    old = {key: session[key] for key in ("status", "store_id", "cart", "infeasible")}
+    if current and current != store_id and current not in session["tried"]:
+        session["tried"].append(current)
     session["store_id"] = store_id
-    _plan_cart(session)
-    if store_id is None and old["status"] == "CART_VALID" and session["status"] != "CART_VALID":
-        # Agent tự đổi quán mà không quán nào khác lập được giỏ: không bỏ giỏ hợp lệ đang có.
-        session.update(old)
-        _msg(session, "INFO", "Không còn quán nào khác lập được giỏ an toàn trong quỹ; giữ giỏ ở %s."
-             % _store_name(old["store_id"]))
-    return session
+    return _plan_cart(session)
 
 
 def finalize(session):
-    _new_turn(session)
+    new_turn(session)
     if session["status"] == "CART_VALID":
+        session["profile"]["budget"] = max(0, session["profile"]["budget"] - session["cart"]["total"])
         session["status"] = "FINALIZED"
     return session
 
@@ -200,7 +223,7 @@ def _answer_question(session, text):
 
 def send(session, text):
     """Một lượt người đặt nhắn."""
-    _new_turn(session)
+    new_turn(session)
     _msg(session, "TEXT", text, role="user")
     if session["status"] == "PROFILE_DRAFT":
         return _answer_question(session, text)
@@ -228,9 +251,12 @@ def send(session, text):
         session["profile"], _ = apply_changes(profile, [change], locked=True)
         session["store_id"] = None
         return _plan_cart(session)
-    if intent == "CHANGE_BUDGET" and route.get("amount"):
-        session["profile"]["budget"] = route["amount"]
-        return _plan_cart(session)
+    if intent == "CHANGE_BUDGET":
+        amount = route.get("amount")
+        if type(amount) is int and amount > 0:
+            return set_budget(session, amount)
+        _msg(session, "QUESTION", "Bạn muốn đổi quỹ chung thành bao nhiêu đồng?")
+        return session
     if intent == "CHANGE_RESTAURANT":
         return change_restaurant(session)
     if intent == "CHANGE_ITEM":
@@ -238,6 +264,8 @@ def send(session, text):
         if target is None:
             _msg(session, "QUESTION", _who_text(who))
             return session
+        if session["status"] == "CART_VALID":
+            return _swap_item(session, target, text, route["detail"])
         if session["store_id"]:
             menu = tools.load_menu(session["store_id"])
             detail = (route["detail"] + " " + text).casefold()
@@ -250,19 +278,90 @@ def send(session, text):
                         return session
         new, _ = apply_changes(profile, [{"op": "ADD_PREFERENCE", "member": who, "text": route["detail"]}],
                                locked=True)
-        old = (session["cart"], session["status"], session["infeasible"])
         session["profile"] = new
-        _plan_cart(session)
-        if session["status"] != "CART_VALID" and old[1] == "CART_VALID":
-            session["cart"], session["status"], session["infeasible"] = old
-            _msg(session, "INFO", "Không đổi được mà vẫn giữ an toàn và trong quỹ, giữ giỏ cũ.")
-        return session
+        return _plan_cart(session)
     _msg(session, "INFO", "Mình chưa hiểu yêu cầu. Bạn có thể đổi món, đổi quỹ, đổi quán hoặc báo thêm dị ứng.")
     return session
 
 
 def _who_text(who):
     return ("Không tìm thấy thành viên %s trong hồ sơ. Bạn nói về ai?" % who) if who else "Bạn nói về thành viên nào?"
+
+
+def _menu_words(text):
+    folded = unicodedata.normalize("NFKD", text.casefold().replace("đ", "d"))
+    return " ".join(re.findall(r"\w+", "".join(c for c in folded if not unicodedata.combining(c))))
+
+
+def _requested_items(menu, text, detail):
+    requested = _menu_words(text)
+    destination = re.split(r"\bsang\b|\bdoi\b.*?\bthanh\b", requested, maxsplit=1)[-1].strip()
+    phrase = f" {destination} "
+    names = {key: _menu_words(item["name"]) for key, item in menu.items()}
+    ids = [key for key in menu if f" {_menu_words(key)} " in phrase]
+    if ids:
+        return ids
+    # Bỏ tên món ngắn nếu nó chỉ là một phần của tên món đầy đủ đã được nhắc.
+    matches = [key for key, name in names.items() if f" {name} " in phrase]
+    if matches:
+        return [key for key in matches if not any(
+            names[key] != names[other] and f" {names[key]} " in f" {names[other]} "
+            for other in matches
+        )]
+    # Cho phép tên rút gọn như "miến gà" nếu router nhận ra đúng cụm người đặt đã dùng.
+    hint = _menu_words(detail)
+    if hint and f" {hint} " in phrase:
+        return [key for key, name in names.items() if name.startswith(hint + " ")]
+    if destination != requested and destination:
+        return [key for key, name in names.items() if name.startswith(destination + " ")]
+    return []
+
+
+def _cart_amounts(lines, budget, shipping):
+    subtotal = sum(line["price"] for line in lines)
+    total = subtotal + shipping
+    return {"subtotal": subtotal, "shipping": shipping, "total": total, "budget": budget, "remaining": budget - total}
+
+
+def _swap_item(session, target, text, detail):
+    cart = session["cart"]
+    menu = tools.load_menu(session["store_id"])
+    matches = _requested_items(menu, text, detail)
+    if not matches:
+        _msg(session, "INFO", "Không tìm thấy món được yêu cầu trong menu quán hiện tại. Giữ nguyên giỏ.")
+        return session
+    if len(matches) > 1:
+        _msg(session, "QUESTION", "Có nhiều món khớp yêu cầu. Bạn chọn món nào: %s?"
+             % ", ".join(menu[key]["name"] for key in matches))
+        return session
+    key = matches[0]
+    item = menu[key]
+    if not item["available"]:
+        _msg(session, "INFO", "%s đã ngừng bán tại quán hiện tại. Giữ nguyên giỏ." % item["name"])
+        return session
+    reason = tools.dish_exclusion(target, item)
+    if reason:
+        _msg(session, "REFUSAL", "Không thể gán %s cho %s (%s). Ràng buộc đã khoá được giữ nguyên; "
+             "hãy chọn món khác phù hợp." % (item["name"], target["name"], reason))
+        return session
+    members = session["profile"]["members"]
+    lines = cart["lines"]
+    if [line["member"] for line in lines] != [member["name"] for member in members]:
+        _msg(session, "INFO", "Chi tiết giỏ không khớp hồ sơ nhóm. Hãy lập lại giỏ trước khi đổi món.")
+        return session
+    index = members.index(target)
+    selected = [line["item_id"] for line in lines]
+    selected[index] = key
+    budget, shipping = session["profile"]["budget"], _shipping(session, session["store_id"])
+    errors = tools.validate_cart(members, selected, menu, budget, shipping)
+    if errors:
+        _msg(session, "INFO", "%s Giữ nguyên giỏ." % " ".join(errors))
+        return session
+    updated = [dict(line, price=menu[item_id]["price"]) for line, item_id in zip(lines, selected)]
+    updated[index].update(item_id=key, name=item["name"], reason="Đổi món theo yêu cầu của người đặt.")
+    session["cart"] = {**cart, "lines": updated, **_cart_amounts(updated, budget, shipping)}
+    _msg(session, "INFO", "Đã đổi suất của %s sang %s." % (target["name"], item["name"]))
+    return session
 
 
 # ---------- lập giỏ ----------
@@ -283,18 +382,22 @@ def _infeasible(session, summary):
     return session
 
 
-def _choose_store(session):
-    """Trả (store_id, None) nếu có quán khả thi, ngược lại (None, tóm tắt quán gần khả thi nhất)."""
+def _choose_store(session, *, exclude=None):
+    """Kiểm khả thi trước, rồi ưu tiên quán chưa thử trong vòng hiện tại."""
     profile = session["profile"]
     members, budget = profile["members"], profile["budget"]
     ids = session["candidates"] or [s["id"] for s in tools.list_restaurants()]
-    ids = [i for i in ids if i not in session["tried"]] or ids
-    summaries = [tools.store_summary(i, members, budget, _shipping(session, i)) for i in ids]
+    summaries = [tools.store_summary(i, members, budget, _shipping(session, i)) for i in ids if i != exclude]
     viable = [s for s in summaries if s["min_total"] is not None and s["min_total"] <= budget]
     if not viable:
         best = max(summaries, key=lambda s: (sum(1 for n in s["safe_counts"].values() if n),
-                                             -(s["min_total"] or 0)))
+                                             -(s["min_total"] or 0)), default=None)
         return None, best
+    untried = [s for s in viable if s["id"] not in session["tried"]]
+    if untried:
+        viable = untried
+    else:
+        session["tried"] = [exclude] if exclude else []
     if len(viable) == 1:
         return viable[0]["id"], None
     choice = llm_steps.choose_restaurant(profile, viable, session["tried"])
@@ -340,11 +443,9 @@ def _plan_cart(session):
             return _infeasible(session, summary)
     lines = [{"member": m["name"], "item_id": k, "name": menu[k]["name"], "price": menu[k]["price"], "reason": r}
              for m, k, r in zip(members, selected, reasons)]
-    subtotal = sum(line["price"] for line in lines)
     excluded = {m["name"]: ex for m, (_, ex) in zip(members, safe) if m["vegetarian"] or m["allergens"]}
     session.update(status="CART_VALID", store_id=store_id, infeasible=None, cart={
-        "lines": lines, "subtotal": subtotal, "shipping": shipping, "total": subtotal + shipping,
-        "budget": budget, "remaining": budget - subtotal - shipping, "excluded": excluded, "built_by": built_by})
+        "lines": lines, **_cart_amounts(lines, budget, shipping), "excluded": excluded, "built_by": built_by})
     return session
 
 

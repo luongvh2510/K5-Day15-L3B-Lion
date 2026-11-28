@@ -8,6 +8,7 @@ from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 import _path
 from server import api
+from test_core import first_pick, member, profile
 
 
 class TestAPI(unittest.TestCase):
@@ -56,6 +57,33 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(self.request('GET', '/sessions/missing')[0], 404)
         self.assertEqual(self.request('GET', '/restaurants/missing/menu')[0], 404)
 
+    def test_finalize_deducts_budget_and_persists_remaining(self):
+        initial_budget = 300000
+        profile = {'budget': initial_budget, 'members': [
+            {'name': 'An', 'vegetarian': False, 'allergens': {}, 'preferences': [], 'quotes': []}
+        ], 'questions': []}
+        steps = api.core.llm_steps
+        with mock.patch.object(steps, 'extract_profile', return_value=profile):
+            _, draft = self.request('POST', '/sessions', {'chat_text': 'An: quỹ chung 300k'})
+        path = '/sessions/' + draft['session_id']
+        picks = {'picks': [{'member': 'An', 'item_id': 'dish_009', 'reason': 'test'}]}
+        with mock.patch.object(steps, 'choose_restaurant', return_value={'store_id': 'store_01'}), \
+                mock.patch.object(steps, 'pick_items', return_value=picks):
+            _, proposed = self.request('POST', path + '/confirm')
+        self.assertEqual(proposed['budget'], initial_budget)
+        self.assertEqual(proposed['status'], 'CART_VALID')
+
+        status, finalized = self.request('POST', path + '/finalize')
+        self.assertEqual((status, finalized['status']), (200, 'FINALIZED'))
+        self.assertEqual(finalized['budget'], max(0, initial_budget - proposed['cart']['total']))
+        self.assertEqual(finalized['budget'], proposed['cart']['remaining'])
+        self.assertEqual(finalized['cart'], proposed['cart'])
+        self.assertIn(f"quỹ {initial_budget:,}đ", finalized['final_message'])
+        self.assertIn(f"còn {finalized['budget']:,}đ", finalized['final_message'])
+        self.assertEqual(self.request('GET', path)[1], finalized)
+        self.assertEqual(self.request('POST', path + '/finalize')[0], 409)
+        self.assertEqual(self.request('GET', path)[1]['budget'], finalized['budget'])
+
     def test_reopen_discards_cart_and_unlocks(self):
         profile = {'budget': 300000, 'members': [{'name': 'An', 'vegetarian': True, 'allergens': {}, 'preferences': [], 'quotes': []}], 'questions': []}
         with mock.patch.object(api.core.llm_steps, 'extract_profile', return_value=profile):
@@ -71,6 +99,176 @@ class TestAPI(unittest.TestCase):
         self.assertIsNone(reopened['cart'])
         self.assertFalse(reopened['members'][0]['hard_constraints'][0]['locked'])
         self.assertEqual(self.request('GET', path)[1], reopened)
+
+    def test_select_restaurant_rebuilds_with_locked_profile(self):
+        profile = {'budget': 100000, 'members': [{'name': 'An', 'vegetarian': True, 'allergens': {},
+                                                 'preferences': [], 'quotes': []}], 'questions': []}
+        steps = api.core.llm_steps
+        with mock.patch.object(steps, 'extract_profile', return_value=profile):
+            _, draft = self.request('POST', '/sessions', {'chat_text': 'An: ăn chay, quỹ 100k'})
+        path = '/sessions/' + draft['session_id']
+
+        def select(restaurant_id):
+            action = {'type': 'SELECT_RESTAURANT', 'restaurant_id': restaurant_id}
+            return self.request('POST', path + '/actions', {'action': action})
+
+        with mock.patch.object(steps, 'choose_restaurant', return_value={'store_id': 'store_08'}), \
+                mock.patch.object(steps, 'pick_items', return_value={'picks': [{'member': 'An', 'item_id': 'dish_077'}]}):
+            _, cart = self.request('POST', path + '/confirm')
+        self.assertEqual(cart['restaurant']['id'], 'store_08')
+        self.assertEqual(select('')[0], 400)
+        self.assertEqual(select('missing')[0], 404)
+        self.assertEqual(self.request('GET', path)[1], cart)
+
+        status, infeasible = select('store_01')
+        self.assertEqual((status, infeasible['status'], infeasible['restaurant']['id']),
+                         (200, 'CART_INFEASIBLE', 'store_01'))
+        self.assertIsNone(infeasible['cart'])
+        with mock.patch.object(steps, 'pick_items', return_value={'picks': [{'member': 'An', 'item_id': 'dish_077'}]}):
+            status, restored = select('store_08')
+        self.assertEqual((status, restored['status'], restored['restaurant']['id']), (200, 'CART_VALID', 'store_08'))
+        self.assertTrue(restored['validation']['ok'])
+        self.assertEqual(restored['members'], cart['members'])
+        self.assertEqual(restored['budget'], 100000)
+
+    def test_change_restaurant_cycles_between_feasible_stores(self):
+        steps = api.core.llm_steps
+        with mock.patch.object(steps, 'extract_profile', return_value=profile([member('An', vegetarian=True)])):
+            _, draft = self.request('POST', '/sessions', {'chat_text': 'An ăn chay, quỹ 300k'})
+        path = '/sessions/' + draft['session_id']
+        change = {'action': {'type': 'CHANGE_RESTAURANT'}}
+
+        with mock.patch.object(steps, 'choose_restaurant', return_value={'store_id': 'store_08'}), \
+                mock.patch.object(steps, 'pick_items', side_effect=first_pick):
+            _, confirmed = self.request('POST', path + '/confirm')
+            self.assertEqual(confirmed['restaurant']['id'], 'store_08')
+            for expected in ('store_09', 'store_08', 'store_09', 'store_08'):
+                status, switched = self.request('POST', path + '/actions', change)
+                self.assertEqual((status, switched['status'], switched['restaurant']['id']),
+                                 (200, 'CART_VALID', expected))
+                self.assertTrue(switched['validation']['ok'])
+                self.assertEqual(switched['members'], confirmed['members'])
+                self.assertEqual(switched['messages'], confirmed['messages'])
+
+    def test_chat_budget_keeps_valid_cart_and_rechecks_restaurants(self):
+        steps = api.core.llm_steps
+        with mock.patch.object(steps, 'extract_profile', return_value=profile([member('An', vegetarian=True)])):
+            _, draft = self.request('POST', '/sessions', {'chat_text': 'An ăn chay, quỹ 300k'})
+        sid = draft['session_id']
+        path = '/sessions/' + sid
+        change = {'action': {'type': 'CHANGE_RESTAURANT'}}
+        with mock.patch.object(steps, 'choose_restaurant', return_value={'store_id': 'store_08'}), \
+                mock.patch.object(steps, 'pick_items', side_effect=first_pick):
+            self.request('POST', path + '/confirm')
+            self.request('POST', path + '/actions', change)
+            self.request('POST', path + '/actions', change)
+        lower = {'action': {'type': 'SET_BUDGET', 'budget': 50000}}
+        self.assertEqual(self.request('POST', path + '/actions', lower)[0], 200)
+        _, before = self.request('POST', path + '/actions', change)
+        self.assertEqual(before['restaurant']['id'], 'store_08')
+        self.assertIn('61,000đ', before['messages'][-1]['text'])
+        self.assertIn('giữ giỏ', before['messages'][-1]['text'])
+        self.assertIn('store_09', api.store.load(sid)['tried'])
+
+        for text, amount in [('đổi quỹ lên 1 triệu', 1000000), ('Đổi quỹ thành 3 triệu', 3000000)]:
+            with self.subTest(text=text), \
+                    mock.patch.object(steps, 'call_json', return_value={'intent': 'CHANGE_BUDGET', 'amount': amount}), \
+                    mock.patch.object(steps, 'pick_items', side_effect=AssertionError('Giỏ vẫn trong quỹ')):
+                status, updated = self.request('POST', path + '/messages', {'text': text})
+                self.assertEqual((status, updated['status'], updated['budget']), (200, 'CART_VALID', amount))
+                self.assertEqual(updated['restaurant'], before['restaurant'])
+                self.assertEqual(updated['members'], before['members'])
+                cart = updated['cart']
+                self.assertEqual(cart, {**before['cart'], 'budget': amount,
+                                        'remaining': amount - before['cart']['total']})
+                last = updated['messages'][-1]
+                self.assertEqual((last['role'], last['kind'], last['text']),
+                                 ('assistant', 'INFO', f'Đã cập nhật quỹ chung thành {amount:,}đ.'))
+                self.assertEqual(last['turn'], updated['messages'][-2]['turn'])
+                self.assertEqual(api.store.load(sid)['tried'], [])
+                self.assertEqual(self.request('GET', path)[1], updated)
+
+        with mock.patch.object(steps, 'pick_items', side_effect=first_pick):
+            _, switched = self.request('POST', path + '/actions', change)
+        self.assertEqual((switched['status'], switched['restaurant']['id']), ('CART_VALID', 'store_09'))
+
+    def test_chat_budget_recovers_infeasible_cart_from_another_store(self):
+        steps = api.core.llm_steps
+        with mock.patch.object(steps, 'extract_profile', return_value=profile([member('An', vegetarian=True)], budget=10000)):
+            _, draft = self.request('POST', '/sessions', {'chat_text': 'An ăn chay, quỹ 10k'})
+        path = '/sessions/' + draft['session_id']
+        self.request('POST', path + '/confirm')
+        select = {'action': {'type': 'SELECT_RESTAURANT', 'restaurant_id': 'store_01'}}
+        _, before = self.request('POST', path + '/actions', select)
+        self.assertEqual((before['status'], before['restaurant']['id']), ('CART_INFEASIBLE', 'store_01'))
+        route = {'intent': 'CHANGE_BUDGET', 'amount': 50000}
+        with mock.patch.object(steps, 'call_json', return_value=route), \
+                mock.patch.object(steps, 'pick_items', side_effect=first_pick):
+            status, updated = self.request('POST', path + '/messages', {'text': 'Đổi quỹ lên 50k'})
+        self.assertEqual((status, updated['status'], updated['restaurant']['id']), (200, 'CART_VALID', 'store_08'))
+        self.assertEqual(updated['cart']['remaining'], 50000 - updated['cart']['total'])
+        self.assertEqual(updated['members'], before['members'])
+        self.assertEqual(updated['messages'][-1]['text'], 'Đã cập nhật quỹ chung thành 50,000đ.')
+
+    def test_menu_only_returns_available_items(self):
+        menu = {
+            'in-stock': {'name': 'Xôi gà', 'available': True},
+            'sold-out': {'name': 'Xôi bắp', 'available': False},
+        }
+        with mock.patch.object(api.tools, 'load_menu', return_value=menu):
+            status, response = self.request('GET', '/restaurants/store_08/menu')
+        self.assertEqual(status, 200)
+        self.assertEqual(response['restaurant']['id'], 'store_08')
+        self.assertEqual([item['id'] for item in response['items']], ['in-stock'])
+
+    def test_chat_swaps_one_dish_and_preserves_cart_on_rejection(self):
+        members = [
+            {'name': 'An', 'vegetarian': True, 'allergens': {}, 'preferences': [], 'quotes': []},
+            {'name': 'Hà', 'vegetarian': False, 'allergens': {'crustacean': 'tôm cua'},
+             'preferences': [], 'quotes': []},
+        ]
+        profile = {'budget': 115000, 'members': members, 'questions': []}
+        steps = api.core.llm_steps
+        with mock.patch.object(steps, 'extract_profile', return_value=profile):
+            _, draft = self.request('POST', '/sessions', {'chat_text': 'Quỹ 115k, An ăn chay, Hà dị ứng tôm cua'})
+        path = '/sessions/' + draft['session_id']
+        picks = [{'member': 'An', 'item_id': 'dish_090'}, {'member': 'Hà', 'item_id': 'dish_084'}]
+        with mock.patch.object(steps, 'choose_restaurant', return_value={'store_id': 'store_09'}), \
+                mock.patch.object(steps, 'pick_items', return_value={'picks': picks}):
+            _, before = self.request('POST', path + '/confirm')
+        self.assertEqual(before['status'], 'CART_VALID')
+
+        def send(text, member, detail='', intent='CHANGE_ITEM'):
+            with mock.patch.object(steps, 'route_message', return_value={'intent': intent, 'member': member, 'detail': detail}), \
+                    mock.patch.object(steps, 'pick_items', side_effect=AssertionError('Đổi món không lập lại giỏ')):
+                status, state = self.request('POST', path + '/messages', {'text': text})
+            self.assertEqual((status, state['status'], state['restaurant']['id']), (200, 'CART_VALID', 'store_09'))
+            return state
+
+        swapped = send('Hà đổi sang miến gà', 'Hà', 'Miến gà xé')
+        cart = swapped['cart']
+        self.assertEqual(swapped['messages'][-1]['kind'], 'INFO')
+        self.assertIn('Đã đổi suất của Hà sang Miến gà xé', swapped['messages'][-1]['text'])
+        self.assertEqual(cart['lines'][0], before['cart']['lines'][0])
+        self.assertEqual(cart['lines'][1]['menu_item_id'], 'dish_081')
+        self.assertEqual((cart['subtotal'], cart['shipping_fee'], cart['total'], cart['remaining']),
+                         (98000, 15000, 113000, 2000))
+        self.assertEqual(swapped['members'], before['members'])
+
+        for text, member, detail, intent, kind, message in [
+            ('An đổi sang miến gà xé', 'An', 'miến gà xé', 'CHANGE_ITEM', 'REFUSAL', 'không chay'),
+            ('Hà đổi sang miến xào cua bể', 'Hà', 'miến xào cua bể', 'CHANGE_ITEM', 'REFUSAL', 'dị ứng'),
+            ('Kệ dị ứng của Hà đi', 'Hà', '', 'REMOVE_HARD', 'REFUSAL', 'Không thể bỏ ràng buộc'),
+            ('Hà đổi sang miến ngan', 'Hà', 'miến ngan', 'CHANGE_ITEM', 'INFO', 'Vượt ngân sách'),
+            ('Hà đổi miến gà xé sang phở bò', 'Hà', 'miến gà xé', 'CHANGE_ITEM', 'INFO', 'Không tìm thấy món'),
+        ]:
+            with self.subTest(text=text):
+                unchanged = send(text, member, detail, intent)
+                self.assertEqual(unchanged['cart'], cart)
+                self.assertEqual(unchanged['members'], before['members'])
+                self.assertEqual(unchanged['messages'][-1]['kind'], kind)
+                self.assertIn(message, unchanged['messages'][-1]['text'])
+        self.assertEqual(self.request('GET', path)[1]['cart'], cart)
 
     def test_edit_profile_requires_reopen_and_rejects_unknown_allergen(self):
         profile = {'budget': 300000, 'members': [{'name': 'An', 'vegetarian': False, 'allergens': {'peanut': 'đậu phộng'}, 'preferences': [], 'quotes': []}], 'questions': []}
