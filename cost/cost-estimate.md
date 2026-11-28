@@ -29,4 +29,4 @@ Chi phí/task thành công = chi phí trung bình/phiên ÷ **0,75**; đây là 
 
 Theo [spec.md §2](../spec.md#2-impact--quyết-định-chọn-guide-13), phân nhóm D2 có khoảng 680 phút/30 ngày cho 9 người, tương đương khoảng **75,6 phút/người/30 ngày** *(tự ước tính từ dữ liệu mẫu)*. Đây là thời gian toàn quy trình, **không phải** thời gian tiết kiệm đã đo; cũng chưa có giá trị tiền quy đổi.
 
-Một dòng so sánh: chi phí model DeepSeek kịch bản cơ sở **$0,0102/người/tháng** so với **75,6 phút/người/30 ngày** của toàn quy trình hiện tại; chưa đo thời gian tiết kiệm hay lợi ích bằng tiền nên **chưa thể kết luận hoàn vốn**.
+**Kết luận một dòng — đáng làm không: có, xét riêng chi phí model.** Kịch bản cơ sở tốn **$0,0102/người/tháng** (DeepSeek; $0,0135 nếu dùng GPT-4.1 mini), rất nhỏ so với **75,6 phút/người/30 ngày** người đặt hộ đang bỏ ra cho toàn quy trình. Chỉ cần công cụ bớt được vài phút mỗi tháng là đã hơn chi phí model. Điều chưa biết: chưa đo số phút tiết kiệm được thật, và bảng chưa gồm hosting, nhân công.
