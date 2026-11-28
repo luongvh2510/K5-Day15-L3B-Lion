@@ -20,7 +20,7 @@ Data BTC cấp đã dùng (nếu có — không commit nguyên file): không dù
 - Việc họ cố làm xong (`động từ + đối tượng + bối cảnh`, không có chữ AI): đặt bữa ăn cho cả nhóm từ một quán, trong giới hạn quỹ chung, sao cho ai cũng ăn được món của mình.
 - Hôm nay họ giải bằng gì, hỏng ở đâu, vì sao chưa bỏ: 9/17 nhận lựa chọn món chủ yếu qua chat nhóm, 4/17 hỏi trực tiếp, 3/17 dùng giỏ chung trên app và 1/17 nhận tin nhắn riêng. Một số người dùng mẫu tin hoặc quán quen để chốt nhanh, như PH07.
 - Pain (KHÔNG chữ AI): người cầm quỹ đặt hộ cả nhóm — phải đọc lại đoạn chat lộn xộn và dò từng món trong menu — vướng ở chỗ dễ sót lời dặn ăn chay/dị ứng, món không ghi thành phần, và phí ship làm vượt quỹ — hậu quả: mất thời gian làm lại, và nguy cơ đặt nhầm món gây dị ứng.
-- Bằng chứng — số chính + kết luận (chi tiết: `evidence/summary.md`): 17/20 người trả lời có đặt hộ nhóm trong 30 ngày qua. Trong số đó, 11/17 phải sửa món, đổi quán hoặc không đặt được ở lần gần nhất; 5/17 báo sót lời dặn. Trung vị thời gian gom đến chốt là 13 phút (16 câu trả lời bằng số). Khảo sát còn thiếu ít nhất 3 người đủ điều kiện ngoài nhóm để đạt ngưỡng BTC.
+- Bằng chứng — số chính + kết luận (chi tiết: `evidence/summary.md`): 17/20 người trả lời có đặt hộ nhóm trong 30 ngày qua. Trong số đó, 11/17 phải sửa món, đổi quán hoặc không đặt được ở lần gần nhất; 5/17 báo sót lời dặn. Trung vị thời gian gom đến chốt là 13 phút (16 câu trả lời bằng số). Nguồn đạt ngưỡng là phỏng vấn 3 người ngoài nhóm (P1–P3): 3/3 gom món qua chat nhóm và phải hỏi lại, sửa giỏ hoặc đổi quán ở lần gần nhất; 2/3 có người ăn chay hoặc dị ứng. Khảo sát chưa đạt ngưỡng riêng (thiếu xác nhận người ngoài nhóm và ít nhất 3 phản hồi).
 
 ## §2. Impact & quyết định chọn *(guide 1.3)*
 
