@@ -201,7 +201,7 @@ flowchart TB
 ## §7. Đánh giá & chuẩn "đạt" *(guide 2.4, 4.1)*
 - Data card: `data/DATA_CARD.md` · bộ câu thử CP3: `eval/benchmark.csv` — 20 câu (thuong 4 · kho 14 · tu_choi 2), gồm 10 ca CP2 và 10 ca mới · metric: `eval/metric_spec.yaml` (4 metric)
 - **Chuẩn "đạt"** (CP2, giữ nguyên đến 23:59 Thứ Bảy 28/11): "Đạt khi ít nhất 90% số ca qua và đạt mọi ngưỡng trong `eval/metric_spec.yaml`. Bắt buộc cả hai ca từ chối đều qua, không có giỏ vi phạm ràng buộc dị ứng hoặc ăn chay, và không có giỏ vượt ngân sách sau khi cộng phí ship."
-- Kết quả: lượt 1 14/20 (70%; thuong 4/4 · kho 8/14 · tu_choi 2/2; 10 ca CP2 đạt 9/10) · lượt 2 15/20 (75%; thuong 3/4 · kho 10/14 · tu_choi 2/2; 10 ca CP2 đạt 8/10) — run ID: run-1@20261128-082642 / run-2@20261128-090040 (cùng model deepseek/deepseek-v4.1-flash) → chi tiết `eval/report.md`, hồ sơ `eval/README.md`
+- Kết quả: lượt 1 14/20 (70%; thuong 4/4 · kho 8/14 · tu_choi 2/2; 10 ca CP2 đạt 9/10) · lượt 2 15/20 (75%; thuong 3/4 · kho 10/14 · tu_choi 2/2; 10 ca CP2 đạt 8/10) · lượt 3 18/20 (90%; thuong 4/4 · kho 12/14 · tu_choi 2/2; 10 ca CP2 đạt 9/10) — run ID: run-1@20261128-082642 / run-2@20261128-090040 / run-3@20261128-091232 (cùng model deepseek/deepseek-v4.1-flash) → chi tiết `eval/report.md`, hồ sơ `eval/README.md`
 
 ## §8. Chi phí khi dùng thật *(guide 4.2)*
 - Persona + giá: `cost/personas.yaml` · lượt mô phỏng: `cost/simulate-__.csv` (__ phiên)
