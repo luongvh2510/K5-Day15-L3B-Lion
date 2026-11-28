@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import type { Question, SessionState } from "./session";
 
@@ -35,7 +35,18 @@ export default function ChatPanel({
   session, questions, busy, sending, reply, onReplyChange, onSend, feedback,
 }: ChatPanelProps) {
   const [emptyReply, setEmptyReply] = useState(false);
+  const conversation = useRef<HTMLDivElement>(null);
+  const previousCount = useRef(0);
+  const messageCount = session.messages.length;
   const original = session.messages.find((message) => message.role === "user");
+
+  useEffect(() => {
+    const list = conversation.current;
+    if (list && (messageCount > previousCount.current || sending)) {
+      list.scrollTop = list.scrollHeight;
+    }
+    previousCount.current = messageCount;
+  }, [messageCount, sending]);
 
   function send(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -50,7 +61,8 @@ export default function ChatPanel({
   return (
     <section className="chat-panel" aria-labelledby="chat-heading">
       <h2 id="chat-heading">Cuộc trò chuyện</h2>
-      <div className="conversation session-conversation">
+      <div className="conversation session-conversation" ref={conversation} tabIndex={0}
+        role="log" aria-label="Lịch sử trò chuyện">
         {session.messages.map((message) => (
           <ChatBubble key={message.id} role={message.role} refusal={message.kind === "REFUSAL"}>
             {message === original ? (

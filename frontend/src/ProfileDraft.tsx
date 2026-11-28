@@ -70,6 +70,47 @@ function MemberCard({ member, hasQuestion, editable, busy, feedback, onChange, o
     setError("");
   }
 
+  const editorId = `${fieldId}-editor`;
+  const editorForm = editable && editor && (
+    <dd className="member-edit">
+      <form id={editorId} className="member-editor" onSubmit={addDetail}>
+        <fieldset disabled={busy}>
+          {editor === "hard" ? (
+            <>
+              <label htmlFor={`${fieldId}-type`}>Loại ràng buộc</label>
+              <select id={`${fieldId}-type`} value={constraintType} autoFocus
+                onChange={(event) => { setConstraintType(event.target.value as HardConstraint["type"]); setError(""); }}>
+                <option value="VEGETARIAN">Ăn chay</option>
+                <option value="ALLERGY">Dị ứng</option>
+              </select>
+              {constraintType === "ALLERGY" && (
+                <>
+                  <label htmlFor={`${fieldId}-allergen`}>Chất gây dị ứng</label>
+                  <select id={`${fieldId}-allergen`} value={allergen}
+                    onChange={(event) => { setAllergen(event.target.value as Allergen); setError(""); }}>
+                    {Object.entries(ALLERGEN_LABEL).map(([code, label]) =>
+                      <option key={code} value={code}>{label}</option>
+                    )}
+                  </select>
+                </>
+              )}
+            </>
+          ) : (
+            <>
+              <label htmlFor={`${fieldId}-preference`}>Sở thích hoặc món không thích</label>
+              <input id={`${fieldId}-preference`} value={preferenceText} autoFocus
+                placeholder="Ví dụ: Không thích món cay"
+                onChange={(event) => { setPreferenceText(event.target.value); setError(""); }} />
+            </>
+          )}
+          {error && <p className="field-error" role="alert">{error}</p>}
+          {feedback}
+          <button className="button button--example" type="submit">Lưu</button>
+        </fieldset>
+      </form>
+    </dd>
+  );
+
   return (
     <li className="member-card">
       <div className="member-header">
@@ -84,54 +125,86 @@ function MemberCard({ member, hasQuestion, editable, busy, feedback, onChange, o
             aria-label={`Xóa thành viên ${member.name}`}
             onClick={onRemove}
           >
-            Xóa người
+            Xoá
           </button>
         )}
       </div>
 
       <dl className="member-details">
-        <div>
-          <dt>Bắt buộc</dt>
-          {member.hard_constraints.length === 0 && <dd className="not-recorded">Chưa ghi nhận</dd>}
-          {member.hard_constraints.map((constraint) => (
-            <dd className="requirement" key={constraint.id}>
-              <div className="requirement-line">
-                <span className="requirement-tag requirement-tag--hard">
-                  {constraintLabel(constraint)}
-                  {constraint.locked && <span role="img" aria-label=" Đã khóa" title="Đã khóa"> 🔒</span>}
-                </span>
-                {editable && !constraint.locked && (
-                  <button className="chip-remove" type="button" disabled={busy}
-                    aria-label={`Xóa ràng buộc ${constraintLabel(constraint)} của ${member.name}`}
-                    onClick={() => onChange({
-                      hard_constraints: member.hard_constraints.filter((item) => item.id !== constraint.id),
-                    })}
-                  >×</button>
-                )}
-              </div>
-              {constraint.source.kind === "HOST" && <span className="field-hint">Người đặt thêm</span>}
-            </dd>
-          ))}
+        <div className="member-group">
+          <dt>
+            Bắt buộc
+            {editable && (
+              <button className="chip-add" type="button" disabled={busy} aria-expanded={editor === "hard"}
+                aria-controls={editor === "hard" ? editorId : undefined}
+                aria-label={`Thêm ràng buộc của ${member.name}`}
+                onClick={() => toggleEditor("hard")}>+</button>
+            )}
+          </dt>
+          <dd className="member-values">
+            {member.hard_constraints.length === 0
+              ? <span className="not-recorded">Chưa ghi nhận</span>
+              : (
+                <ul className="member-chips">
+                  {member.hard_constraints.map((constraint) => (
+                    <li className="requirement" key={constraint.id}>
+                      <div className="requirement-line">
+                        <span className={`requirement-tag requirement-tag--hard${constraint.source.kind === "HOST" ? " requirement-tag--host" : ""}`}
+                          title={constraint.source.kind === "HOST" ? "Người đặt thêm" : undefined}>
+                          {constraintLabel(constraint)}
+                          {constraint.locked && <span role="img" aria-label=" Đã khóa" title="Đã khóa"> 🔒</span>}
+                        </span>
+                        {editable && !constraint.locked && (
+                          <button className="chip-remove" type="button" disabled={busy}
+                            aria-label={`Xóa ràng buộc ${constraintLabel(constraint)} của ${member.name}`}
+                            onClick={() => onChange({
+                              hard_constraints: member.hard_constraints.filter((item) => item.id !== constraint.id),
+                            })}
+                          >×</button>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+          </dd>
+          {editor === "hard" && editorForm}
         </div>
-        <div>
-          <dt>Sở thích</dt>
-          {member.preferences.length === 0 && <dd className="not-recorded">Chưa ghi nhận</dd>}
-          {member.preferences.map((preference) => (
-            <dd className="requirement" key={preference.id}>
-              <div className="requirement-line">
-                <span className="requirement-tag requirement-tag--soft">{preference.text}</span>
-                {editable && (
-                  <button className="chip-remove" type="button" disabled={busy}
-                    aria-label={`Xóa sở thích ${preference.text} của ${member.name}`}
-                    onClick={() => onChange({
-                      preferences: member.preferences.filter((item) => item.id !== preference.id),
-                    })}
-                  >×</button>
-                )}
-              </div>
-              {preference.source.kind === "HOST" && <span className="field-hint">Người đặt thêm</span>}
-            </dd>
-          ))}
+        <div className="member-group">
+          <dt>
+            Sở thích
+            {editable && (
+              <button className="chip-add" type="button" disabled={busy} aria-expanded={editor === "soft"}
+                aria-controls={editor === "soft" ? editorId : undefined}
+                aria-label={`Thêm sở thích của ${member.name}`}
+                onClick={() => toggleEditor("soft")}>+</button>
+            )}
+          </dt>
+          <dd className="member-values">
+            {member.preferences.length === 0
+              ? <span className="not-recorded">Chưa ghi nhận</span>
+              : (
+                <ul className="member-chips">
+                  {member.preferences.map((preference) => (
+                    <li className="requirement" key={preference.id}>
+                      <div className="requirement-line">
+                        <span className={`requirement-tag requirement-tag--soft${preference.source.kind === "HOST" ? " requirement-tag--host" : ""}`}
+                          title={preference.source.kind === "HOST" ? "Người đặt thêm" : undefined}>{preference.text}</span>
+                        {editable && (
+                          <button className="chip-remove" type="button" disabled={busy}
+                            aria-label={`Xóa sở thích ${preference.text} của ${member.name}`}
+                            onClick={() => onChange({
+                              preferences: member.preferences.filter((item) => item.id !== preference.id),
+                            })}
+                          >×</button>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+          </dd>
+          {editor === "soft" && editorForm}
         </div>
       </dl>
 
@@ -141,53 +214,7 @@ function MemberCard({ member, hasQuestion, editable, busy, feedback, onChange, o
         </blockquote>
       )}
 
-      {editable && (
-        <div className="member-edit">
-          <div className="editor-actions">
-            <button className="button button--plain" type="button" disabled={busy} aria-expanded={editor === "hard"}
-              onClick={() => toggleEditor("hard")}>Thêm ràng buộc</button>
-            <button className="button button--plain" type="button" disabled={busy} aria-expanded={editor === "soft"}
-              onClick={() => toggleEditor("soft")}>Thêm sở thích</button>
-          </div>
-          {editor && (
-            <form className="member-editor" onSubmit={addDetail}>
-              <fieldset disabled={busy}>
-                {editor === "hard" ? (
-                  <>
-                    <label htmlFor={`${fieldId}-type`}>Loại ràng buộc</label>
-                    <select id={`${fieldId}-type`} value={constraintType}
-                      onChange={(event) => { setConstraintType(event.target.value as HardConstraint["type"]); setError(""); }}>
-                      <option value="VEGETARIAN">Ăn chay</option>
-                      <option value="ALLERGY">Dị ứng</option>
-                    </select>
-                    {constraintType === "ALLERGY" && (
-                      <>
-                        <label htmlFor={`${fieldId}-allergen`}>Chất gây dị ứng</label>
-                        <select id={`${fieldId}-allergen`} value={allergen}
-                          onChange={(event) => { setAllergen(event.target.value as Allergen); setError(""); }}>
-                          {Object.entries(ALLERGEN_LABEL).map(([code, label]) =>
-                            <option key={code} value={code}>{label}</option>
-                          )}
-                        </select>
-                      </>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <label htmlFor={`${fieldId}-preference`}>Sở thích hoặc món không thích</label>
-                    <input id={`${fieldId}-preference`} value={preferenceText} placeholder="Ví dụ: Không thích món cay"
-                      onChange={(event) => { setPreferenceText(event.target.value); setError(""); }} />
-                  </>
-                )}
-                {error && <p className="field-error" role="alert">{error}</p>}
-                {feedback}
-                <button className="button button--example" type="submit">Lưu</button>
-              </fieldset>
-            </form>
-          )}
-          {!editor && feedback}
-        </div>
-      )}
+      {editable && !editor && feedback}
     </li>
   );
 }
@@ -198,12 +225,16 @@ type ProfileDraftProps = {
   openMemberIds: ReadonlySet<string | null>;
   onEdit: SaveMembers;
   headingRef?: Ref<HTMLHeadingElement>;
+  budgetAction?: ReactNode;
+  budgetEditor?: ReactNode;
   editFeedback?: { memberName: string | null; content: ReactNode };
 };
 
 const nameKey = (name: string) => name.trim().normalize("NFC").toLocaleLowerCase("vi-VN");
 
-export default function ProfileDraft({ session, busy, openMemberIds, onEdit, headingRef, editFeedback }: ProfileDraftProps) {
+export default function ProfileDraft({
+  session, busy, openMemberIds, onEdit, headingRef, budgetAction, budgetEditor, editFeedback,
+}: ProfileDraftProps) {
   const [newName, setNewName] = useState("");
   const [nameError, setNameError] = useState("");
   const editable = session.status === "PROFILE_DRAFT";
@@ -232,30 +263,46 @@ export default function ProfileDraft({ session, busy, openMemberIds, onEdit, hea
   return (
     <div className="draft">
       <div className="draft-header">
-        <h2 ref={headingRef} tabIndex={-1}>Hồ sơ nhóm</h2>
-        {editable && <span className="draft-badge">Bản nháp</span>}
+        <div className="draft-title">
+          <h2 ref={headingRef} tabIndex={-1}>Hồ sơ nhóm</h2>
+          {editable && <span className="draft-badge">Bản nháp</span>}
+        </div>
+        <div className="budget-control">
+          <div className="budget-display">
+            <span>Quỹ chung</span>
+            <strong>{session.budget === null ? "Chưa xác định" : session.budget.toLocaleString("vi-VN") + "đ"}</strong>
+          </div>
+          {editable && budgetAction}
+        </div>
       </div>
-      <ul className="members" aria-label="Hồ sơ từng người">
-        {session.members.map((member) => (
-          <MemberCard
-            key={member.name}
-            member={member}
-            hasQuestion={openMemberIds.has(member.id)}
-            editable={editable}
-            busy={busy}
-            feedback={editFeedback?.memberName === member.name ? editFeedback.content : undefined}
-            onChange={(changes, afterSuccess) =>
-              save(session.members.map((item) => item.id === member.id ? { ...item, ...changes } : item),
-                member.name, afterSuccess)
-            }
-            onRemove={() => {
-              if (!member.hard_constraints.some((constraint) => constraint.locked)) {
-                save(session.members.filter((item) => item.id !== member.id), member.name);
+      {editable && budgetEditor}
+      {session.members.length === 0 ? (
+        <p className="members-empty">
+          Chưa ghi nhận thành viên nào. Bạn có thể thêm thành viên bên dưới hoặc nhắn thông tin nhóm cho Lion.
+        </p>
+      ) : (
+        <ul className="members" aria-label="Hồ sơ từng người">
+          {session.members.map((member) => (
+            <MemberCard
+              key={member.name}
+              member={member}
+              hasQuestion={openMemberIds.has(member.id)}
+              editable={editable}
+              busy={busy}
+              feedback={editFeedback?.memberName === member.name ? editFeedback.content : undefined}
+              onChange={(changes, afterSuccess) =>
+                save(session.members.map((item) => item.id === member.id ? { ...item, ...changes } : item),
+                  member.name, afterSuccess)
               }
-            }}
-          />
-        ))}
-      </ul>
+              onRemove={() => {
+                if (!member.hard_constraints.some((constraint) => constraint.locked)) {
+                  save(session.members.filter((item) => item.id !== member.id), member.name);
+                }
+              }}
+            />
+          ))}
+        </ul>
+      )}
       {editable && (
         <form className="add-member" onSubmit={addMember}>
           <label htmlFor="member-name">Tên thành viên mới</label>
