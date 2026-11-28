@@ -7,7 +7,7 @@ Tóm tắt tại [README](../README.md#dùng-ai-vào-việc-gì) và [spec.md §
 | Việc | Công cụ AI | AI làm gì | Người kiểm/sửa gì | Ai phụ trách |
 |---|---|---|---|---|
 | Code bản chạy thử CP2 | Codex | Viết khung đọc chat mô phỏng, đọc menu và kiểm giỏ bằng Python. | Kiểm bằng CLI trên 10 ca mô phỏng. Phân công và thiết kế bản hiện tại ghi trong spec §4, §10. | Cường phối hợp AI/BE |
-| Tổng hợp khảo sát | Codex | Trích 23 phản hồi, bỏ cột hồ sơ đáp viên, đếm 20 phản hồi qua Q1 và tính số liệu từ Q2–Q7. | Log theo mã PH giữ ở `evidence/survey/results.csv`. Trích dẫn tra lại qua mã và Q8. Điều kiện ngoài nhóm của từng mã PH chưa được xác nhận. | Cường |
+| Tổng hợp khảo sát | Codex | Trích 23 phản hồi, bỏ cột hồ sơ đáp viên, đếm 20 phản hồi qua Q1 và tính số liệu từ Q2–Q7. | Cường xác nhận điều kiện ngoài nhóm cho 20 mã qua Q1. Log và trích dẫn tra lại qua mã PH trong `evidence/survey/results.csv`. | Cường |
 | Rà câu hỏi khảo sát | Codex | Gợi ý câu sàng lọc và câu hỏi về lần đặt hộ đã xảy ra. | Câu hỏi lưu theo workbook đã thu trong `evidence/survey/questions.md`. | Cường |
 | Viết ca benchmark | Codex | Soạn tình huống mô phỏng và chuyển một số phản hồi khảo sát thành ca CP3. | Cột `source` dẫn tới quy tắc, menu hoặc mã phản hồi có thể đối chiếu. Chuẩn đạt CP2 giữ nguyên. | Cường |
 | Chấm thử 5 output mô phỏng CP2 | Hai agent Codex | Chấm độc lập B02, B04, B05, B07 và B09. Đồng thuận 5/5. | Đây là chấm thử. Chưa có kết quả chấm tay độc lập cho 5 output này. Ba lượt model thật dùng điểm do người chấm ghi, xem `eval/report.md`. | Cường |
