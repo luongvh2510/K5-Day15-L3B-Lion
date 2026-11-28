@@ -5,7 +5,7 @@
 >
 > **Cập nhật 28/11** theo thiết kế mới và dữ liệu thật `data/dataset_mon_an_viet.json`: đầu vào chỉ là đoạn chat
 > (quỹ đọc từ chat, quán do agent chọn), định dạng chat mới, ăn chay suy từ nguyên liệu (BR-02), 10 mã dị ứng theo
-> dữ liệu (mục 4), phí ship cố định 15.000đ, chỉ có món chính. Các dòng đã đổi có ghi *(cập nhật 28/11)*.
+> dữ liệu (mục 4), phí ship tính theo `distance_km` của quán, chỉ có món chính. Các dòng đã đổi có ghi *(cập nhật 28/11)*.
 
 ## 1. Thuật ngữ
 
@@ -38,7 +38,7 @@ Mỗi món có các trường sau (schema kỹ thuật ở [04](04-hop-dong-du-l
 | Rõ thành phần | `false` nếu không có nguyên liệu. Dữ liệu hiện tại: mọi món đều rõ |
 | Còn bán | `false` thì không được đưa vào giỏ |
 
-Phí ship: dữ liệu không có, POC dùng **cố định 15.000đ cho mọi quán**. Dữ liệu có 10 quán, mỗi quán 10 món.
+Phí ship: dữ liệu không có trường phí, POC **tính theo `distance_km` của quán: 15.000đ cho 2 km đầu, mỗi km tiếp theo (làm tròn lên) +5.000đ** (mô phỏng, `tools.shipping_fee`). 7 quán trong 2 km là 15.000đ; store_04, store_05, store_09 là 20.000đ; store_10 (3,1 km) là 25.000đ *(cập nhật 28/11)*. Dữ liệu có 10 quán, mỗi quán 10 món.
 
 ## 3. Quy tắc nghiệp vụ
 
